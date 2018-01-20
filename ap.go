@@ -2,42 +2,60 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
+)
+
+const (
+	sim = ".sim"
+	ptl = ".ptl"
 )
 
 var (
-	condition = "ContractConditions(\"MainCondition\")"
-	menu      = "default_menu"
-	sim       = ".sim"
-	ptl       = ".ptl"
-	outName   = "out.json"
+	condition string
+	menu      string
+	outName   string
+	prefix    string
+	path      string
 )
 
-func main() {
-	args := os.Args[1:]
-	if len(args) == 0 {
-		args = []string{"."}
-	}
-	for _, path := range args {
-		files, err := ioutil.ReadDir(path)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		content := createExportJSON(files)
-		file, err := os.Create(outName)
-		if err != nil {
-			return
-		}
-		defer file.Close()
-		file.WriteString(content)
-	}
+func init() {
+	flag.StringVar(&condition, "c", "ContractConditions(\"MainCondition\")", "shortcut for for --conditions")
+	flag.StringVar(&condition, "-conditions", "ContractConditions(\"MainCondition\")", "conditions")
+	flag.StringVar(&menu, "m", "default_menu", "shortcut for --menu")
+	flag.StringVar(&menu, "-menu", "default_menu", "menu")
+	flag.StringVar(&outName, "o", "out.sim.json", "shortcut for --output")
+	flag.StringVar(&outName, "-output", "out.sim.json", "output filename")
+	flag.StringVar(&prefix, "p", "", "shortcut for --prefix")
+	flag.StringVar(&prefix, "-prefix", "", "prefix for pages and contracts")
+	flag.StringVar(&path, "i", ".", "shortcut for --input")
+	flag.StringVar(&path, "-input", ".", "path for input files")
 }
 
-func createExportJSON(files []os.FileInfo) string {
+func main() {
+	flag.Parse()
+	if prefix != "" {
+		prefix = prefix + "_"
+	}
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	content := createJSON(files)
+	file, err := os.Create(outName)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+	file.WriteString(content)
+}
+
+func createJSON(files []os.FileInfo) string {
 	emptyEntry := []map[string]string{}
 	contracts := emptyEntry
 	pages := emptyEntry
@@ -64,13 +82,19 @@ func createExportJSON(files []os.FileInfo) string {
 
 func convert(filename string, ext string) (result map[string]string) {
 	result = make(map[string]string)
-	result["Name"] = filename[:len(filename)-len(ext)]
+	name := filename[:len(filename)-len(ext)]
+	result["Name"] = prefix + name
 	result["Conditions"] = condition
+	result["Value"] = file2JSON(filename)
 	switch ext {
+	case sim:
+		if prefix != "" {
+			re := regexp.MustCompile("contract\\s+" + name)
+			result["Value"] = re.ReplaceAllString(result["Value"], "contract "+result["Name"])
+		}
 	case ptl:
 		result["Menu"] = menu
 	}
-	result["Value"] = file2JSON(filename)
 	return
 }
 
