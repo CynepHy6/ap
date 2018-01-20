@@ -13,6 +13,7 @@ var (
 	menu      = "default_menu"
 	sim       = ".sim"
 	ptl       = ".ptl"
+	outName   = "out.json"
 )
 
 func main() {
@@ -26,16 +27,27 @@ func main() {
 			fmt.Println(err)
 			continue
 		}
-		createExportJSON(files)
+		content := createExportJSON(files)
+		file, err := os.Create(outName)
+		if err != nil {
+			return
+		}
+		defer file.Close()
+		file.WriteString(content)
 	}
 }
 
-func createExportJSON(files []os.FileInfo) {
-
-	contracts := []map[string]string{}
-	pages := []map[string]string{}
+func createExportJSON(files []os.FileInfo) string {
+	emptyEntry := []map[string]string{}
+	contracts := emptyEntry
+	pages := emptyEntry
 	out := make(map[string][]map[string]string)
-
+	out["menus"] = emptyEntry
+	out["parameters"] = emptyEntry
+	out["languages"] = emptyEntry
+	out["tables"] = emptyEntry
+	out["data"] = emptyEntry
+	out["blocks"] = emptyEntry
 	for _, file := range files {
 		switch ext := filepath.Ext(file.Name()); ext {
 		case ptl:
@@ -47,7 +59,7 @@ func createExportJSON(files []os.FileInfo) {
 	out["pages"] = pages
 	out["contracts"] = contracts
 	result, _ := json.Marshal(out)
-	fmt.Println(string(result))
+	return string(result)
 }
 
 func convert(filename string, ext string) (result map[string]string) {
@@ -61,28 +73,12 @@ func convert(filename string, ext string) (result map[string]string) {
 	result["Value"] = file2JSON(filename)
 	return
 }
+
 func file2JSON(filename string) (str string) {
-	file, err := os.Open(filename)
+	bs, err := ioutil.ReadFile(filename)
 	if err != nil {
-		fmt.Printf("%s not found", filename)
 		return
 	}
-	defer file.Close()
-
-	// get stat
-	stat, err := file.Stat()
-	if err != nil {
-		fmt.Printf("%s not stats", filename)
-		return
-	}
-	// read
-	bs := make([]byte, stat.Size())
-	_, err = file.Read(bs)
-	if err != nil {
-		fmt.Printf("%s not read", filename)
-		return
-	}
-
 	byteStr, _ := json.Marshal(string(bs))
 	str = string(byteStr)
 	return
