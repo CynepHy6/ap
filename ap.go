@@ -28,8 +28,8 @@ func init() {
 	flag.StringVar(&condition, "-conditions", "ContractConditions(\"MainCondition\")", "conditions")
 	flag.StringVar(&menu, "m", "default_menu", "shortcut for --menu")
 	flag.StringVar(&menu, "-menu", "default_menu", "menu")
-	flag.StringVar(&outName, "o", "out.sim.json", "shortcut for --output")
-	flag.StringVar(&outName, "-output", "out.sim.json", "output filename")
+	flag.StringVar(&outName, "o", "out", "shortcut for --output")
+	flag.StringVar(&outName, "-output", "out", "output filename for JSON")
 	flag.StringVar(&prefix, "p", "", "shortcut for --prefix")
 	flag.StringVar(&prefix, "-prefix", "", "prefix for pages and contracts")
 	flag.StringVar(&path, "i", ".", "shortcut for --input")
@@ -41,21 +41,16 @@ func main() {
 	if prefix != "" {
 		prefix = prefix + "_"
 	}
-	files, err := ioutil.ReadDir(path)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	content := createJSON(files)
-	file, err := os.Create(outName)
+	content := createJSON(path)
+	outFile, err := os.Create(outName + ".json")
 	if err != nil {
 		return
 	}
-	defer file.Close()
-	file.WriteString(content)
+	defer outFile.Close()
+	outFile.WriteString(content)
 }
 
-func createJSON(files []os.FileInfo) string {
+func createJSON(path string) string {
 	emptyEntry := []map[string]string{}
 	contracts := emptyEntry
 	pages := emptyEntry
@@ -66,12 +61,18 @@ func createJSON(files []os.FileInfo) string {
 	out["tables"] = emptyEntry
 	out["data"] = emptyEntry
 	out["blocks"] = emptyEntry
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
 	for _, file := range files {
-		switch ext := filepath.Ext(file.Name()); ext {
+		fileName := file.Name()
+		switch ext := filepath.Ext(fileName); ext {
 		case ptl:
-			pages = append(pages, convert(file.Name(), ptl))
+			pages = append(pages, convert(path, fileName, ptl))
 		case sim:
-			contracts = append(contracts, convert(file.Name(), sim))
+			contracts = append(contracts, convert(path, fileName, sim))
 		}
 	}
 	out["pages"] = pages
@@ -80,12 +81,12 @@ func createJSON(files []os.FileInfo) string {
 	return string(result)
 }
 
-func convert(filename string, ext string) (result map[string]string) {
+func convert(path, filename, ext string) (result map[string]string) {
 	result = make(map[string]string)
 	name := filename[:len(filename)-len(ext)]
 	result["Name"] = prefix + name
 	result["Conditions"] = condition
-	result["Value"] = file2JSON(filename)
+	result["Value"] = file2str(path, filename)
 	switch ext {
 	case sim:
 		if prefix != "" {
@@ -98,12 +99,11 @@ func convert(filename string, ext string) (result map[string]string) {
 	return
 }
 
-func file2JSON(filename string) (str string) {
-	bs, err := ioutil.ReadFile(filename)
+func file2str(path, filename string) (str string) {
+	bs, err := ioutil.ReadFile(path + filename)
 	if err != nil {
 		return
 	}
-	byteStr, _ := json.Marshal(string(bs))
-	str = string(byteStr)
+	str = string(bs)
 	return
 }
