@@ -41,7 +41,9 @@ Simvolio and Protypo files packager to import on ecosystem
       -t, permission for tables (default "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}")
 
 --unpack
+
       -u, unpacking mode
 
 --verbose
+
       -v, work log
