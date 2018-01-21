@@ -2,6 +2,17 @@
 
 Simvolio and Protypo files packager to import on ecosystem
 
+### Examples
+
+#### Unpack file
+
+>ap -u -i basic.sim
+
+#### Pack files in dir
+
+>cd output
+>ap -o basic.sim
+
 ### Usage of "ap"
 
   --conditions string
@@ -27,51 +38,3 @@ Simvolio and Protypo files packager to import on ecosystem
   --table-permission string
 
         -t, permission for tables (default "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}")
-
-  --unpack
-
-        -u, unpacking mode
-
-  --verbose
-
-        work log
-
-  -c string
-
-        --conditions (default "ContractConditions(\"MainCondition\")")
-
-  -i string
-
-        --input (default ".")
-
-  -m string
-
-        --menu (default "default_menu")
-
-  -o string
-
-        --output (default "output")
-
-  -p string
-
-        --prefix
-
-  -t string
-
-        --table-permission (default "{\"insert\":\"true\",\"update\":\"true\",
-        \"new_column\":\"true\"}")
-  -u    --unpack
-
-  -v    --verbose
-  
-
-### Examples
-
-#### Unpack file
-
->ap -u -i basic.sim
-
-#### Pack files in dir
-
->cd output
->ap -o basic.sim
