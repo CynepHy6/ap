@@ -10,9 +10,9 @@ Simvolio and Protypo files packager to import on ecosystem
 
 #### Pack files from "output/" to basic.sim.json
 
-      cd output
-
-      ap -o basic.sim
+> cd output
+>
+>ap -o basic.sim
 
 ### Usage of "ap"
 
