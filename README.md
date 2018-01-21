@@ -4,14 +4,15 @@ Simvolio and Protypo files packager to import on ecosystem
 
 ### Examples
 
-#### Unpack file
+#### Unpack file from "basic.sim" to "output/"
 
 >ap -u -i basic.sim
 
-#### Pack files in dir
+#### Pack files from "output/" to basic.sim.json
 
->cd output
->ap -o basic.sim
+      cd output
+
+      ap -o basic.sim
 
 ### Usage of "ap"
 
