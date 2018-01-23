@@ -25,15 +25,25 @@ const (
 	_data  = "__data"
 	_page  = "__page"
 	_contr = "__contract"
+
+	//dirs
+	dirBlock = "blocks"
+	dirMenu  = "menus"
+	dirLang  = "languages"
+	dirTable = "tables"
+	dirParam = "parameters"
+	dirData  = "datas"
+	dirPage  = "pages"
+	dirCon   = "contracts"
 )
 
 var (
 	// flags
 	condition  string
 	menu       string
-	outName    string
+	outputName string
 	prefix     string
-	path       string
+	inputName  string
 	permission string
 	unpack     bool
 	verbose    bool
@@ -44,12 +54,12 @@ func init() {
 	flag.StringVar(&condition, "-conditions", "ContractConditions(\"MainCondition\")", "-c, conditions")
 	flag.StringVar(&menu, "m", "default_menu", "--menu")
 	flag.StringVar(&menu, "-menu", "default_menu", "-m, menu")
-	flag.StringVar(&outName, "o", "output", "--output")
-	flag.StringVar(&outName, "-output", "output", "-o, output filename for JSON")
+	flag.StringVar(&outputName, "o", "output", "--output")
+	flag.StringVar(&outputName, "-output", "output", "-o, output filename for JSON")
 	flag.StringVar(&prefix, "p", "", "--prefix")
 	flag.StringVar(&prefix, "-prefix", "", "-p, prefix for pages and contracts")
-	flag.StringVar(&path, "i", ".", "--input")
-	flag.StringVar(&path, "-input", ".", "-i, path for input files")
+	flag.StringVar(&inputName, "i", ".", "--input")
+	flag.StringVar(&inputName, "-input", ".", "-i, path for input files")
 	flag.StringVar(&permission, "t", "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}", "--table-permission")
 	flag.StringVar(&permission, "-table-permission", "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}", "-t, permission for tables")
 	flag.BoolVar(&unpack, "-unpack", false, "-u, unpacking mode")
@@ -59,115 +69,96 @@ func init() {
 
 	flag.Parse()
 
-	if outName == "output" && path != "." { // we have only inputname
+	if outputName == "output" && inputName != "." { // we have only inputname
 		if unpack {
-			parts := strings.Split(path, "/")
+			parts := strings.Split(inputName, "/")
 			pLen := len(parts)
-			outName = parts[pLen-1]
-			ext := filepath.Ext(outName)
-			outName = outName[:len(outName)-len(ext)]
-			outName = outName + string(os.PathSeparator)
+			outputName = parts[pLen-1]
+			ext := filepath.Ext(outputName)
+			outputName = outputName[:len(outputName)-len(ext)]
+			outputName = outputName + string(os.PathSeparator)
 		} else {
-			parts := strings.Split(path, "/")
+			parts := strings.Split(inputName, "/")
 			pLen := len(parts)
-			outName = parts[pLen-1] + ".json"
+			outputName = parts[pLen-1]
 		}
 	}
 	if prefix != "" {
 		prefix = prefix + "_"
-		outName = prefix + outName
+		outputName = prefix + outputName
 	}
 	if unpack {
-		if stats, err := os.Stat(path); path == "." || stats.IsDir() || err != nil {
+		if stats, err := os.Stat(inputName); inputName == "." || stats.IsDir() || err != nil {
 			if err != nil {
 				fmt.Println(err)
 			}
 			fmt.Println("please choose file for unpaking, example:\n ap -u -i file.json")
 			return //todo: create batch unpacking on Dir
 		}
-		if !strings.HasSuffix(outName, string(os.PathSeparator)) {
-			outName = outName + string(os.PathSeparator)
+		if !strings.HasSuffix(outputName, string(os.PathSeparator)) {
+			outputName = outputName + string(os.PathSeparator)
 		}
 		if verbose {
-			fmt.Println("output dir name:", outName)
+			fmt.Println("output dir name:", outputName)
 		}
 	}
 }
 
 func main() {
 	if unpack {
-		unpackJSON(path)
+		unpackJSON(inputName)
 	} else {
-		packJSON(path)
+		packJSON(inputName)
 	}
 }
 
 func packJSON(path string) {
-	out := make(map[string][]map[string]string)
-	emptyMap := []map[string]string{}
-	contracts := emptyMap
-	pages := emptyMap
-	menus := emptyMap
-	params := emptyMap
-	langs := emptyMap
-	tables := emptyMap
-	datas := emptyMap
-	blocks := emptyMap
+
+	countFiles, out := packDir(path)
+
 	path = filepath.Dir(path)
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
-		panic(err)
+		return
 	}
-	var countFiles int
+
 	for _, f := range files {
 		fname := f.Name()
-		ext := filepath.Ext(fname)
-		name := fname[:len(fname)-len(ext)]
-		if verbose {
-			fmt.Println(fname)
+		fpath := filepath.Join(path, fname)
+		sf, err := os.Stat(fpath)
+		if err != nil {
+			fmt.Println(err)
+			return
 		}
-		switch ext {
-		case ePTL:
-			countFiles++
-			switch {
-			case strings.HasSuffix(name, _menu):
-				menus = append(menus, encode(path, fname, _menu))
-			case strings.HasSuffix(name, _block):
-				blocks = append(blocks, encode(path, fname, _block))
-			default:
-				pages = append(pages, encode(path, fname, _page))
+		if sf.IsDir() {
+			c, dir := packDir(fpath)
+			countFiles += c
+			switch fname {
+			case dirBlock:
+				copy(out[fname], dir[fname])
+			case dirMenu:
+				copy(out[fname], dir[fname])
+			case dirLang:
+				copy(out[fname], dir[fname])
+			case dirTable:
+				copy(out[fname], dir[fname])
+			case dirParam:
+				copy(out[fname], dir[fname])
+			case dirData:
+				copy(out[fname], dir[fname])
+			case dirPage:
+				copy(out[fname], dir[fname])
+			case dirCon:
+				copy(out[fname], dir[fname])
 			}
-		case eJSON:
-			switch {
-			case strings.HasSuffix(name, _param):
-				countFiles++
-				params = append(params, encode(path, fname, _param))
-			case strings.HasSuffix(name, _lang):
-				countFiles++
-				langs = append(langs, encode(path, fname, _lang))
-			case strings.HasSuffix(name, _table):
-				countFiles++
-				tables = append(tables, encode(path, fname, _table))
-			case strings.HasSuffix(name, _data):
-				countFiles++
-				datas = append(datas, encode(path, fname, _data))
-			}
-		case eSIM:
-			countFiles++
-			contracts = append(contracts, encode(path, fname, _contr))
 		}
 	}
 	if countFiles > 0 {
-		out["menus"] = menus
-		out["parameters"] = params
-		out["languages"] = langs
-		out["tables"] = tables
-		out["data"] = datas
-		out["blocks"] = blocks
-		out["pages"] = pages
-		out["contracts"] = contracts
 		result, _ := json.Marshal(out)
-		outFile, err := os.Create(outName)
+		if !strings.HasSuffix(outputName, ".json") {
+			outputName += ".json"
+		}
+		outFile, err := os.Create(outputName)
 		if err != nil {
 			if verbose {
 				fmt.Println(err)
@@ -180,6 +171,56 @@ func packJSON(path string) {
 	if verbose {
 		fmt.Println("not found files")
 	}
+}
+
+func packDir(path string) (countFiles int, out map[string][]map[string]string) {
+	out = map[string][]map[string]string{}
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return
+	}
+
+	for _, f := range files {
+		fname := f.Name()
+		ext := filepath.Ext(fname)
+		name := fname[:len(fname)-len(ext)]
+		if verbose {
+			fmt.Println(fname)
+		}
+
+		switch ext {
+		case ePTL:
+			countFiles++
+			switch {
+			case strings.HasSuffix(name, _menu):
+				out["menus"] = append(out["menus"], encode(path, fname, _menu))
+			case strings.HasSuffix(name, _block):
+				out["blocks"] = append(out["blocks"], encode(path, fname, _block))
+			default:
+				out["pages"] = append(out["pages"], encode(path, fname, _page))
+			}
+		case eJSON:
+			switch {
+			case strings.HasSuffix(name, _param):
+				countFiles++
+				out["parameters"] = append(out["parameters"], encode(path, fname, _param))
+			case strings.HasSuffix(name, _lang):
+				countFiles++
+				out["languages"] = append(out["languages"], encode(path, fname, _lang))
+			case strings.HasSuffix(name, _table):
+				countFiles++
+				out["tables"] = append(out["tables"], encode(path, fname, _table))
+			case strings.HasSuffix(name, _data):
+				countFiles++
+				out["data"] = append(out["data"], encode(path, fname, _data))
+			}
+		case eSIM:
+			countFiles++
+			out["contracts"] = append(out["contracts"], encode(path, fname, _contr))
+		}
+
+	}
+	return
 }
 
 func encode(path, fname, sExt string) (result map[string]string) {
@@ -310,7 +351,7 @@ func unpackJSON(filename string) {
 	if len(file.Data) > 0 {
 		for _, c := range file.Data {
 			name := prefix + c.Table + _data + eJSON
-			outFile, err := os.Create(filepath.Join(outName, name))
+			outFile, err := os.Create(filepath.Join(outputName, name))
 			if err != nil {
 				continue
 			}
@@ -329,10 +370,10 @@ func unpackJSON(filename string) {
 }
 
 func writeFileString(filename, content string) {
-	if err := os.MkdirAll(outName, os.ModePerm); err != nil {
+	if err := os.MkdirAll(outputName, os.ModePerm); err != nil {
 		fmt.Println(err)
 	}
-	outFile, err := os.Create(filepath.Join(outName, filename))
+	outFile, err := os.Create(filepath.Join(outputName, filename))
 	if err != nil {
 		fmt.Println(err)
 		return
