@@ -12,6 +12,8 @@ import (
 )
 
 const (
+	currentVersion = "version: 0.3.1"
+
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
 	eJSON = ".json"
@@ -47,6 +49,7 @@ var (
 	permission string
 	unpack     bool
 	verbose    bool
+	version    bool
 	dirs       []string
 )
 
@@ -65,12 +68,14 @@ func init() {
 	flag.StringVar(&permission, "-table-permission", "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}", "-t, permission for tables")
 	flag.BoolVar(&unpack, "-unpack", false, "-u, unpacking mode")
 	flag.BoolVar(&unpack, "u", false, "--unpack")
-	flag.BoolVar(&verbose, "-verbose", false, "work log")
-	flag.BoolVar(&verbose, "v", false, "--verbose")
+	flag.BoolVar(&verbose, "-verbose", false, "print log")
+	flag.BoolVar(&version, "v", false, "version")
 	flag.Parse()
 
 	dirs = []string{dirBlock, dirMenu, dirLang, dirTable, dirParam, dirData, dirPage, dirCon}
-
+	if version {
+		fmt.Println(currentVersion)
+	}
 	if outputName == "output" && inputName != "." { // we have only inputname
 		if unpack {
 			parts := strings.Split(inputName, "/")
