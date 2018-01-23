@@ -56,10 +56,23 @@ func init() {
 	flag.BoolVar(&unpack, "u", false, "--unpack")
 	flag.BoolVar(&verbose, "-verbose", false, "work log")
 	flag.BoolVar(&verbose, "v", false, "--verbose")
-}
 
-func main() {
 	flag.Parse()
+
+	if outName == "output" && path != "." { // we have only inputname
+		if unpack {
+			parts := strings.Split(path, "/")
+			pLen := len(parts)
+			outName = parts[pLen-1]
+			ext := filepath.Ext(outName)
+			outName = outName[:len(outName)-len(ext)]
+			outName = outName + string(os.PathSeparator)
+		} else {
+			parts := strings.Split(path, "/")
+			pLen := len(parts)
+			outName = parts[pLen-1] + ".json"
+		}
+	}
 	if prefix != "" {
 		prefix = prefix + "_"
 		outName = prefix + outName
@@ -78,26 +91,18 @@ func main() {
 		if verbose {
 			fmt.Println("output dir name:", outName)
 		}
-		unpackJSON(path)
-
-	} else {
-		content := packJSON(path)
-		if content == "" {
-			return
-		}
-		outFile, err := os.Create(outName + ".json")
-		if err != nil {
-			if verbose {
-				fmt.Println(err)
-			}
-			return
-		}
-		defer outFile.Close()
-		outFile.WriteString(content)
 	}
 }
 
-func packJSON(path string) string {
+func main() {
+	if unpack {
+		unpackJSON(path)
+	} else {
+		packJSON(path)
+	}
+}
+
+func packJSON(path string) {
 	out := make(map[string][]map[string]string)
 	emptyMap := []map[string]string{}
 	contracts := emptyMap
@@ -162,12 +167,19 @@ func packJSON(path string) string {
 		out["pages"] = pages
 		out["contracts"] = contracts
 		result, _ := json.Marshal(out)
-		return string(result)
+		outFile, err := os.Create(outName)
+		if err != nil {
+			if verbose {
+				fmt.Println(err)
+			}
+			return
+		}
+		defer outFile.Close()
+		outFile.WriteString(string(result))
 	}
 	if verbose {
 		fmt.Println("not found files")
 	}
-	return ""
 }
 
 func encode(path, fname, sExt string) (result map[string]string) {
