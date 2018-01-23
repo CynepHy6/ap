@@ -32,7 +32,7 @@ const (
 	dirLang  = "languages"
 	dirTable = "tables"
 	dirParam = "parameters"
-	dirData  = "datas"
+	dirData  = "data"
 	dirPage  = "pages"
 	dirCon   = "contracts"
 )
@@ -47,6 +47,7 @@ var (
 	permission string
 	unpack     bool
 	verbose    bool
+	dirs       []string
 )
 
 func init() {
@@ -66,8 +67,9 @@ func init() {
 	flag.BoolVar(&unpack, "u", false, "--unpack")
 	flag.BoolVar(&verbose, "-verbose", false, "work log")
 	flag.BoolVar(&verbose, "v", false, "--verbose")
-
 	flag.Parse()
+
+	dirs = []string{dirBlock, dirMenu, dirLang, dirTable, dirParam, dirData, dirPage, dirCon}
 
 	if outputName == "output" && inputName != "." { // we have only inputname
 		if unpack {
@@ -80,7 +82,11 @@ func init() {
 		} else {
 			parts := strings.Split(inputName, "/")
 			pLen := len(parts)
-			outputName = parts[pLen-1]
+			if strings.HasSuffix(inputName, "/") {
+				outputName = parts[pLen-2]
+			} else {
+				outputName = parts[pLen-1]
+			}
 		}
 	}
 	if prefix != "" {
@@ -175,6 +181,9 @@ func packJSON(path string) {
 
 func packDir(path string) (countFiles int, out map[string][]map[string]string) {
 	out = map[string][]map[string]string{}
+	for _, n := range dirs {
+		out[n] = []map[string]string{}
+	}
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		return
