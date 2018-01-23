@@ -4,15 +4,13 @@ Simvolio and Protypo files packager to import on ecosystem
 
 ### Examples
 
-#### Unpack file from "basic.sim" to "output/"
+#### Unpack file from "basic.sim" to "./basic/"
 
 >ap -u -i basic.sim
 
-#### Pack files from "output/" to basic.sim.json
+#### Pack files from "basic/" to ./basic.json
 
-> cd output
->
->ap -o basic.sim
+>ap -i basic/
 
 ### Usage of "ap"
 
@@ -32,9 +30,6 @@ Simvolio and Protypo files packager to import on ecosystem
 
       -o, output filename for JSON (default "output")
 
-  --prefix string
-
-      -p, prefix for pages and contracts
 
   --table-permission string
 
@@ -46,4 +41,6 @@ Simvolio and Protypo files packager to import on ecosystem
 
 --verbose
 
-      -v, work log
+      work log
+
+for actuals flags use "ap -h"
