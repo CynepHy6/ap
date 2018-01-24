@@ -1,7 +1,10 @@
 # Change Log
 
-ver 0.4
+ver 0.5
 
+### 0.5
+
+    + store config for conditions and pages menu
 
 ### 0.4
 
