@@ -1,9 +1,10 @@
 # Change Log
 
-ver 0.5
+ver 0.5.1
 
-### 0.5
+### 0.5+
 
+    + basic sorting contracts by use
     + store config for conditions and pages menu
 
 ### 0.4

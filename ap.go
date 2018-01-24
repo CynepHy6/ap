@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	currentVersion = "version: 0.5"
+	currentVersion = "version: 0.5.1"
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
@@ -165,6 +165,9 @@ func packJSON(path string) {
 	}
 	if countFiles > 0 {
 		readConfig(&out)
+		if len(out.Contracts) > 0 {
+			out.Contracts = sortContracts(out.Contracts)
+		}
 
 		result, _ := json.Marshal(out)
 		if !strings.HasSuffix(outputName, ".json") {
@@ -512,6 +515,21 @@ func writeConfig(bs []byte) {
 			writeFileString(configName, string(bs))
 		}
 	}
+}
+func sortContracts(c []stdStruct) (res []stdStruct) {
+	// sorting contracts by used in other contracts
+	res = c
+	lenC := len(c)
+	for i := lenC - 1; i > 0; i-- {
+		name := c[i].Name
+		for j := i - 1; j >= 0; j-- {
+			value := c[j].Value
+			if strings.Contains(value, name) {
+				c[i], c[j] = c[j], c[i]
+			}
+		}
+	}
+	return
 }
 
 type configFile struct {
