@@ -481,6 +481,9 @@ func readConfig(out *exportFile) {
 				if config.Pages[c].Name == out.Pages[o].Name {
 					out.Pages[o].Conditions = config.Pages[c].Conditions
 				}
+				if len(config.Pages[c].Menu) > 0 {
+					out.Pages[o].Menu = config.Pages[c].Menu
+				}
 			}
 		}
 	}
