@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	currentVersion = "version: 0.4"
+	currentVersion = "version: 0.5"
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
