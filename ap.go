@@ -186,10 +186,15 @@ func packJSON(path string) {
 }
 
 func packDir(path string) (countFiles int, out exportFile) {
-	// out = map[string][]map[string]string{}
-	// for _, n := range dirs {
-	// out[n] = []map[string]string{}
-	// }
+	out.Blocks = []stdStruct{}
+	out.Contracts = []stdStruct{}
+	out.Data = []dataStruct{}
+	out.Languages = []langStruct{}
+	out.Menus = []stdStruct{}
+	out.Pages = []pageStruct{}
+	out.Parameters = []stdStruct{}
+	out.Tables = []tableStruct{}
+
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		return
