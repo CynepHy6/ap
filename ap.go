@@ -36,6 +36,9 @@ const (
 	dirData  = "data"
 	dirPage  = "pages"
 	dirCon   = "contracts"
+
+	//
+	configName = "config.json"
 )
 
 var (
@@ -161,6 +164,8 @@ func packJSON(path string) {
 		}
 	}
 	if countFiles > 0 {
+		readConfig(&out)
+
 		result, _ := json.Marshal(out)
 		if !strings.HasSuffix(outputName, ".json") {
 			outputName += ".json"
@@ -332,9 +337,10 @@ func unpackJSON(filename string) {
 	}
 	file := exportFile{}
 	if err := json.Unmarshal(bs, &file); err != nil {
-		fmt.Println(err)
+		fmt.Println("unmarshal file error:", err)
 		return
 	}
+
 	if len(file.Contracts) > 0 {
 		createDir(filepath.Join(outputName, dirCon))
 		for _, c := range file.Contracts {
@@ -407,6 +413,7 @@ func unpackJSON(filename string) {
 			writeFileString(name, value)
 		}
 	}
+	writeConfig(bs)
 }
 func createDir(path string) {
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
@@ -417,7 +424,7 @@ func createDir(path string) {
 func writeFileString(filename, content string) {
 	outFile, err := os.Create(filepath.Join(outputName, filename))
 	if err != nil {
-		fmt.Println("error save file", err)
+		// fmt.Println("error write file:", err)
 		return
 	}
 	defer outFile.Close()
@@ -429,6 +436,97 @@ func writeFileString(filename, content string) {
 		fmt.Println("extract:", outFile.Name())
 	}
 
+}
+func readConfig(out *exportFile) {
+	config := exportFile{}
+
+	bs, err := ioutil.ReadFile(filepath.Join(outputName, configName))
+	if err != nil {
+		if verbose {
+			fmt.Println("config file not found. use default values")
+		}
+		return
+	}
+	_ = json.Unmarshal(bs, &config)
+	if len(config.Blocks) > 0 {
+		for c := range config.Blocks {
+			for o := range out.Blocks {
+				if config.Blocks[c].Name == out.Blocks[o].Name {
+					out.Blocks[o].Conditions = config.Blocks[c].Conditions
+				}
+			}
+		}
+	}
+	if len(config.Contracts) > 0 {
+		for c := range config.Contracts {
+			for o := range out.Contracts {
+				if config.Contracts[c].Name == out.Contracts[o].Name {
+					out.Contracts[o].Conditions = config.Contracts[c].Conditions
+				}
+			}
+		}
+	}
+	if len(config.Menus) > 0 {
+		for c := range config.Menus {
+			for o := range out.Menus {
+				if config.Menus[c].Name == out.Menus[o].Name {
+					out.Menus[o].Conditions = config.Menus[c].Conditions
+				}
+			}
+		}
+	}
+	if len(config.Pages) > 0 {
+		for c := range config.Pages {
+			for o := range out.Pages {
+				if config.Pages[c].Name == out.Pages[o].Name {
+					out.Pages[o].Conditions = config.Pages[c].Conditions
+				}
+			}
+		}
+	}
+	if len(config.Tables) > 0 {
+		for c := range config.Tables {
+			for o := range out.Tables {
+				if config.Tables[c].Name == out.Tables[o].Name {
+					out.Tables[o].Permissions = config.Tables[c].Permissions
+				}
+			}
+		}
+	}
+	return
+}
+func writeConfig(bs []byte) {
+	cFile := configFile{}
+	if err := json.Unmarshal(bs, &cFile); err != nil {
+		fmt.Println("unmarshal config file error:", err)
+	} else {
+		if bs, err := json.Marshal(cFile); err == nil {
+			writeFileString(configName, string(bs))
+		}
+	}
+}
+
+type configFile struct {
+	Blocks    *[]stdConf   `json:"blocks"`
+	Contracts *[]stdConf   `json:"contracts"`
+	Menus     *[]stdConf   `json:"menus"`
+	Pages     *[]pageConf  `json:"pages"`
+	Tables    *[]tableConf `json:"tables"`
+}
+type stdConf struct {
+	Name       string
+	Conditions string
+}
+
+type pageConf struct {
+	Name       string
+	Conditions string
+	Menu       string
+}
+
+type tableConf struct {
+	Name        string
+	Permissions string
 }
 
 type exportFile struct {
