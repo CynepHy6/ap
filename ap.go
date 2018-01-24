@@ -55,19 +55,21 @@ var (
 )
 
 func init() {
-	flag.StringVar(&condition, "c", "ContractConditions(\"MainCondition\")", "--conditions")
-	flag.StringVar(&condition, "-conditions", "ContractConditions(\"MainCondition\")", "-c, conditions")
-	flag.StringVar(&menu, "m", "default_menu", "--menu")
-	flag.StringVar(&menu, "-menu", "default_menu", "-m, menu")
-	flag.StringVar(&outputName, "o", "output", "--output")
-	flag.StringVar(&outputName, "-output", "output", "-o, output filename for JSON")
-	flag.StringVar(&inputName, "i", ".", "--input")
-	flag.StringVar(&inputName, "-input", ".", "-i, path for input files")
-	flag.StringVar(&permission, "t", "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}", "--table-permission")
-	flag.StringVar(&permission, "-table-permission", "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}", "-t, permission for tables")
 	flag.BoolVar(&unpack, "-unpack", false, "-u, unpacking mode")
-	flag.BoolVar(&unpack, "u", false, "--unpack")
+	flag.StringVar(&inputName, "-input", ".", "-i, path for input files, filename for pack and dirname/ (slashed) for unpack")
+	flag.StringVar(&outputName, "-output", "output", "-o, output filename for JSON if input file name not pointed")
+	flag.StringVar(&condition, "-conditions", "ContractConditions(\"MainCondition\")", "-c, conditions. Used if entry not founded in 'config.json'")
+	flag.StringVar(&menu, "-menu", "default_menu", "-m, menu. Used if entry not founded in 'config.json'")
+	flag.StringVar(&permission, "-table-permission", "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}", "-t, permission for tables. Used if entry not founded in 'config.json'")
 	flag.BoolVar(&verbose, "-verbose", false, "print log")
+
+	// shorthand
+	flag.StringVar(&menu, "m", "default_menu", "--menu")
+	flag.StringVar(&condition, "c", "ContractConditions(\"MainCondition\")", "--conditions")
+	flag.StringVar(&outputName, "o", "output", "--output")
+	flag.StringVar(&inputName, "i", ".", "--input")
+	flag.StringVar(&permission, "t", "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}", "--table-permission")
+	flag.BoolVar(&unpack, "u", false, "--unpack")
 	flag.BoolVar(&version, "v", false, "version")
 	flag.Parse()
 
