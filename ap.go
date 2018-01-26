@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	currentVersion = "version: 0.5.2"
+	currentVersion = "apla packager v0.5.3"
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
@@ -123,7 +123,7 @@ func main() {
 
 func packJSON(path string) {
 
-	countFiles, out := packDir(path)
+	out := packDir(path)
 
 	path = filepath.Dir(path)
 	files, err := ioutil.ReadDir(path)
@@ -143,8 +143,7 @@ func packJSON(path string) {
 			return
 		}
 		if sf.IsDir() {
-			c, dir := packDir(fpath)
-			countFiles += c
+			dir := packDir(fpath)
 			switch fname {
 			case dirBlock:
 				out.Blocks = append(out.Blocks, dir.Blocks...)
@@ -165,7 +164,7 @@ func packJSON(path string) {
 			}
 		}
 	}
-	if countFiles > 0 {
+	if countEntries(out) > 0 {
 		readConfig(&out)
 		if len(out.Contracts) > 0 {
 			out.Contracts = sortContracts(out.Contracts)
@@ -190,7 +189,7 @@ func packJSON(path string) {
 	}
 }
 
-func packDir(path string) (countFiles int, out exportFile) {
+func packDir(path string) (out exportFile) {
 	out.Blocks = []stdStruct{}
 	out.Contracts = []stdStruct{}
 	out.Data = []dataStruct{}
@@ -215,7 +214,6 @@ func packDir(path string) (countFiles int, out exportFile) {
 
 		switch ext {
 		case ePTL:
-			countFiles++
 			switch {
 			case strings.HasSuffix(name, _menu):
 				out.Menus = append(out.Menus, encodeStd(path, fname, _menu))
@@ -227,20 +225,15 @@ func packDir(path string) (countFiles int, out exportFile) {
 		case eJSON:
 			switch {
 			case strings.HasSuffix(name, _param):
-				countFiles++
 				out.Parameters = append(out.Parameters, encodeStd(path, fname, _param))
 			case strings.HasSuffix(name, _lang):
-				countFiles++
 				out.Languages = append(out.Languages, encodeLang(path, fname, _lang))
 			case strings.HasSuffix(name, _table):
-				countFiles++
 				out.Tables = append(out.Tables, encodeTable(path, fname, _table))
 			case strings.HasSuffix(name, _data):
-				countFiles++
 				out.Data = append(out.Data, encodeData(path, fname, _data))
 			}
 		case eSIM:
-			countFiles++
 			out.Contracts = append(out.Contracts, encodeStd(path, fname, _contr))
 		}
 
@@ -532,6 +525,17 @@ func sortContracts(c []stdStruct) (res []stdStruct) {
 		}
 	}
 	return
+}
+
+func countEntries(file exportFile) (count int) {
+	return len(file.Blocks) +
+		len(file.Contracts) +
+		len(file.Data) +
+		len(file.Languages) +
+		len(file.Menus) +
+		len(file.Pages) +
+		len(file.Parameters) +
+		len(file.Tables)
 }
 
 type configFile struct {
