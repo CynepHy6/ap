@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	currentVersion = "version: 0.5.1"
+	currentVersion = "version: 0.5.2"
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
@@ -171,7 +171,7 @@ func packJSON(path string) {
 			out.Contracts = sortContracts(out.Contracts)
 		}
 
-		result, _ := json.Marshal(out)
+		result, _ := json.MarshalIndent(out, "", "    ")
 		if !strings.HasSuffix(outputName, ".json") {
 			outputName += ".json"
 		}
@@ -410,7 +410,7 @@ func unpackJSON(filename string) {
 		for _, c := range file.Data {
 			name := c.Table + _data + eJSON
 			name = filepath.Join(dirData, name)
-			result, _ := json.Marshal(c)
+			result, _ := json.MarshalIndent(c, "", "    ")
 			writeFileString(name, string(result))
 		}
 	}
@@ -513,7 +513,7 @@ func writeConfig(bs []byte) {
 	if err := json.Unmarshal(bs, &cFile); err != nil {
 		fmt.Println("unmarshal config file error:", err)
 	} else {
-		if bs, err := json.Marshal(cFile); err == nil {
+		if bs, err := json.MarshalIndent(cFile, "", "    "); err == nil {
 			writeFileString(configName, string(bs))
 		}
 	}
