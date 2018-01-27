@@ -1,6 +1,10 @@
 # Change Log
 
-### 0.5+
+### 0.6
+
+    + simple GUI
+
+### 0.5
 
     + pretty json
     + basic sorting contracts by use

@@ -8,10 +8,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/andlabs/ui"
 )
 
 const (
-	currentVersion = "apla packager v0.5.3"
+	currentVersion = "apla packager v0.6"
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
@@ -39,6 +41,7 @@ const (
 
 	//
 	configName = "config.json"
+	separator  = string(os.PathSeparator)
 )
 
 var (
@@ -77,18 +80,35 @@ func init() {
 	if version {
 		fmt.Println(currentVersion)
 	}
+	args := os.Args
+	if len(args) == 1 {
+		simpleGui()
+	} else {
+		checkOutput()
+	}
+}
+
+func main() {
+	if unpack {
+		unpackJSON(inputName)
+	} else {
+		packJSON(inputName)
+	}
+}
+
+func checkOutput() {
 	if outputName == "output" && inputName != "." { // we have only inputname
 		if unpack {
-			parts := strings.Split(inputName, "/")
+			parts := strings.Split(inputName, separator)
 			pLen := len(parts)
 			outputName = parts[pLen-1]
 			ext := filepath.Ext(outputName)
 			outputName = outputName[:len(outputName)-len(ext)]
-			outputName = outputName + string(os.PathSeparator)
+			outputName = outputName + separator
 		} else {
-			parts := strings.Split(inputName, "/")
+			parts := strings.Split(inputName, separator)
 			pLen := len(parts)
-			if strings.HasSuffix(inputName, "/") {
+			if strings.HasSuffix(inputName, separator) {
 				outputName = parts[pLen-2]
 			} else {
 				outputName = parts[pLen-1]
@@ -104,8 +124,8 @@ func init() {
 			fmt.Println("please choose file for unpaking, example:\n ap -u -i file.json")
 			return //todo: create batch unpacking on Dir
 		}
-		if !strings.HasSuffix(outputName, string(os.PathSeparator)) {
-			outputName = outputName + string(os.PathSeparator)
+		if !strings.HasSuffix(outputName, separator) {
+			outputName = outputName + separator
 		}
 		if verbose {
 			fmt.Println("output dir name:", outputName)
@@ -113,11 +133,44 @@ func init() {
 	}
 }
 
-func main() {
-	if unpack {
-		unpackJSON(inputName)
-	} else {
-		packJSON(inputName)
+func simpleGui() {
+	err := ui.Main(func() {
+		btnPack := ui.NewButton("Pack mode:\nselect any file in target dir")
+		btnUnpack := ui.NewButton("Unpack mode:\nselect file of import")
+		box := ui.NewHorizontalBox()
+		box.Append(btnPack, true)
+		box.Append(btnUnpack, true)
+		window := ui.NewWindow("ap operation helper", 300, 100, false)
+		window.SetMargined(true)
+		window.SetChild(box)
+		btnPack.OnClicked(func(*ui.Button) {
+			wSelectFile := ui.NewWindow("select dir", 300, 100, false)
+			inputName = ui.OpenFile(wSelectFile)
+
+			if inputName != "" {
+				inputName = filepath.Dir(inputName) + separator
+				checkOutput()
+				ui.Quit()
+			}
+		})
+		btnUnpack.OnClicked(func(*ui.Button) {
+			unpack = true
+			wSelectFile := ui.NewWindow("select file", 300, 100, false)
+			inputName = ui.OpenFile(wSelectFile)
+
+			if inputName != "" {
+				checkOutput()
+				ui.Quit()
+			}
+		})
+		window.OnClosing(func(*ui.Window) bool {
+			ui.Quit()
+			return true
+		})
+		window.Show()
+	})
+	if err != nil {
+		panic(err)
 	}
 }
 
