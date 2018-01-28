@@ -1,7 +1,8 @@
 # Change Log
 
-### 0.6
+### 0.6.+
 
+    + all parameters and all language resources are combined in separate files
     + simple GUI
 
 ### 0.5

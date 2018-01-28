@@ -8,12 +8,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/andlabs/ui"
 )
 
 const (
-	currentVersion = "apla packager v0.6"
+	currentVersion = "apla packager v0.6.1"
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
@@ -82,7 +80,7 @@ func init() {
 	}
 	args := os.Args
 	if len(args) == 1 {
-		simpleGui()
+		SimpleGui()
 	} else {
 		checkOutput()
 	}
@@ -130,47 +128,6 @@ func checkOutput() {
 		if verbose {
 			fmt.Println("output dir name:", outputName)
 		}
-	}
-}
-
-func simpleGui() {
-	err := ui.Main(func() {
-		btnPack := ui.NewButton("Pack mode:\nselect any file in target dir")
-		btnUnpack := ui.NewButton("Unpack mode:\nselect file of import")
-		box := ui.NewHorizontalBox()
-		box.Append(btnPack, true)
-		box.Append(btnUnpack, true)
-		window := ui.NewWindow("ap operation helper", 300, 100, false)
-		window.SetMargined(true)
-		window.SetChild(box)
-		btnPack.OnClicked(func(*ui.Button) {
-			wSelectFile := ui.NewWindow("select dir", 300, 100, false)
-			inputName = ui.OpenFile(wSelectFile)
-
-			if inputName != "" {
-				inputName = filepath.Dir(inputName) + separator
-				checkOutput()
-				ui.Quit()
-			}
-		})
-		btnUnpack.OnClicked(func(*ui.Button) {
-			unpack = true
-			wSelectFile := ui.NewWindow("select file", 300, 100, false)
-			inputName = ui.OpenFile(wSelectFile)
-
-			if inputName != "" {
-				checkOutput()
-				ui.Quit()
-			}
-		})
-		window.OnClosing(func(*ui.Window) bool {
-			ui.Quit()
-			return true
-		})
-		window.Show()
-	})
-	if err != nil {
-		panic(err)
 	}
 }
 
@@ -277,6 +234,12 @@ func packDir(path string) (out exportFile) {
 			}
 		case eJSON:
 			switch {
+			case name == "parameters":
+				p := filepath.Join(path, fname)
+				out.Parameters = append(out.Parameters, file2stdArray(p)...)
+			case name == "languages":
+				p := filepath.Join(path, fname)
+				out.Languages = append(out.Languages, file2lang(p)...)
 			case strings.HasSuffix(name, _param):
 				out.Parameters = append(out.Parameters, encodeStd(path, fname, _param))
 			case strings.HasSuffix(name, _lang):
@@ -385,6 +348,24 @@ func file2data(filename string) (result dataStruct) {
 	return
 }
 
+func file2stdArray(filename string) (result []stdStruct) {
+	bs, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return
+	}
+	json.Unmarshal(bs, &result)
+	return
+}
+
+func file2lang(filename string) (result []langStruct) {
+	bs, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return
+	}
+	json.Unmarshal(bs, &result)
+	return
+}
+
 func unpackJSON(filename string) {
 	bs, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -416,22 +397,16 @@ func unpackJSON(filename string) {
 		}
 	}
 	if len(file.Parameters) > 0 {
-		createDir(filepath.Join(outputName, dirParam))
-		for _, c := range file.Parameters {
-			value := c.Value
-			name := c.Name + _param + eJSON
-			name = filepath.Join(dirParam, name)
-			writeFileString(name, value)
-		}
+		byteValue, _ := json.MarshalIndent(file.Parameters, "", "    ")
+		value := string(byteValue)
+		name := dirParam + eJSON
+		writeFileString(name, value)
 	}
 	if len(file.Languages) > 0 {
-		createDir(filepath.Join(outputName, dirLang))
-		for _, c := range file.Languages {
-			value := c.Trans
-			name := c.Name + _lang + eJSON
-			name = filepath.Join(dirLang, name)
-			writeFileString(name, value)
-		}
+		byteValue, _ := json.MarshalIndent(file.Languages, "", "    ")
+		value := string(byteValue)
+		name := dirLang + eJSON
+		writeFileString(name, value)
 	}
 	if len(file.Tables) > 0 {
 		createDir(filepath.Join(outputName, dirTable))
