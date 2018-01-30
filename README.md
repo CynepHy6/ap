@@ -14,33 +14,17 @@ Simvolio and Protypo files packager to import on ecosystem
 
 ### Usage of "ap"
 
-  --conditions string
+--input string
 
-      -c, conditions (default "ContractConditions(\"MainCondition\")")
+    -i, path for input files (default ".")
 
-  --input string
+--output string
 
-      -i, path for input files (default ".")
-
-  --menu string
-
-      -m, menu (default "default_menu")
-
-  --output string
-
-      -o, output filename for JSON (default "output")
-
-
-  --table-permission string
-
-      -t, permission for tables (default "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}")
+    -o, output filename for JSON (default "output" if "input" not found)
 
 --unpack
 
-      -u, unpacking mode
+    -u, unpacking mode
 
---verbose
 
-      work log
-
-for actuals flags use "ap -h"
+for view all flags please use "ap -h"
