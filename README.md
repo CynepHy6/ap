@@ -2,17 +2,17 @@
 
 Simvolio and Protypo files packager to import on ecosystem
 
-### Examples
+## Examples
 
-#### Unpack file from "basic.sim" to "./basic/"
+### Unpack file from "basic.sim" to "./basic/"
 
 >ap -u -i basic.sim
 
-#### Pack files from "basic/" to ./basic.json
+### Pack files from "basic/" to ./basic.json
 
 >ap -i basic/
 
-### Usage of "ap"
+## Usage of "ap"
 
 --input string
 
@@ -28,3 +28,13 @@ Simvolio and Protypo files packager to import on ecosystem
 
 
 for view all flags please use "ap -h"
+
+## build
+
+### linux
+
+    go build
+
+### windows
+
+    go build -ldflags -H=windowsgui
