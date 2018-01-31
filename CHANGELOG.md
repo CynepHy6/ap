@@ -2,6 +2,7 @@
 
 ### 0.6.+
 
+    + unescape "<>&" on stringify
     + all parameters and all language resources are combined in separate files
     + simple GUI
 

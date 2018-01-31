@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -11,7 +12,7 @@ import (
 )
 
 const (
-	currentVersion = "apla packager v0.6.1"
+	currentVersion = "apla packager v0.6.2"
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
@@ -180,7 +181,7 @@ func packJSON(path string) {
 			out.Contracts = sortContracts(out.Contracts)
 		}
 
-		result, _ := json.MarshalIndent(out, "", "    ")
+		result, _ := _JSONMarshal(out, true)
 		if !strings.HasSuffix(outputName, ".json") {
 			outputName += ".json"
 		}
@@ -197,6 +198,17 @@ func packJSON(path string) {
 	if verbose {
 		fmt.Println("not found files")
 	}
+}
+
+func _JSONMarshal(v interface{}, unescape bool) ([]byte, error) {
+	b, err := json.MarshalIndent(v, "", "    ")
+
+	if unescape {
+		b = bytes.Replace(b, []byte("\\u003c"), []byte("<"), -1)
+		b = bytes.Replace(b, []byte("\\u003e"), []byte(">"), -1)
+		b = bytes.Replace(b, []byte("\\u0026"), []byte("&"), -1)
+	}
+	return b, err
 }
 
 func packDir(path string) (out exportFile) {
