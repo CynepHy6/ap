@@ -10,8 +10,8 @@ import (
 // SimpleGui - using if main program run without arguments
 func SimpleGui() {
 	err := ui.Main(func() {
-		packMsg := fmt.Sprintf("Pack mode:\nselect any file in target dir")
-		unpackMsg := fmt.Sprintf("Unpack mode:\nselect file of import")
+		packMsg := fmt.Sprintf("Pack: select any file in source dir")
+		unpackMsg := fmt.Sprintf("Unpack: select source file")
 		btnPack := ui.NewButton(packMsg)
 		btnUnpack := ui.NewButton(unpackMsg)
 		box := ui.NewHorizontalBox()
