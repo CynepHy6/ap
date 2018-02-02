@@ -17,7 +17,7 @@ func SimpleGui() {
 		box := ui.NewHorizontalBox()
 		box.Append(btnPack, true)
 		box.Append(btnUnpack, true)
-		window := ui.NewWindow("ap operation helper", 300, 100, false)
+		window := ui.NewWindow(currentVersion, 300, 100, false)
 		window.SetMargined(true)
 		window.SetChild(box)
 		btnPack.OnClicked(func(*ui.Button) {
