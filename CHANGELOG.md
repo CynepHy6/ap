@@ -2,6 +2,8 @@
 
 ### 0.6.+
 
+    + parameters unpack to '.csv'
+    + add flag for combined in separate files
     + unescape "<>&" on stringify
     + all parameters and all language resources are combined in separate files
     + simple GUI

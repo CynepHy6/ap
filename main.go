@@ -12,11 +12,12 @@ import (
 )
 
 const (
-	currentVersion = "apla packager v0.6.2"
+	currentVersion = "apla packager v0.6.3"
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
 	eJSON = ".json"
+	eCSV  = ".csv"
 
 	// file suffixes
 	_block = "__block"
@@ -45,15 +46,16 @@ const (
 
 var (
 	// flags
-	condition  string
-	menu       string
-	outputName string
-	inputName  string
-	permission string
-	unpack     bool
-	verbose    bool
-	version    bool
-	dirs       []string
+	condition      string
+	menu           string
+	outputName     string
+	inputName      string
+	permission     string
+	unpack         bool
+	verbose        bool
+	version        bool
+	singleSeparate bool
+	dirs           []string
 )
 
 func init() {
@@ -73,6 +75,7 @@ func init() {
 	flag.StringVar(&permission, "t", "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}", "--table-permission")
 	flag.BoolVar(&unpack, "u", false, "--unpack")
 	flag.BoolVar(&version, "v", false, "version")
+	flag.BoolVar(&singleSeparate, "s", false, "language and parameters will unpack to single separate files")
 	flag.Parse()
 
 	dirs = []string{dirBlock, dirMenu, dirLang, dirTable, dirParam, dirData, dirPage, dirCon}
@@ -261,6 +264,11 @@ func packDir(path string) (out exportFile) {
 			case strings.HasSuffix(name, _data):
 				out.Data = append(out.Data, encodeData(path, fname, _data))
 			}
+		case eCSV:
+			switch {
+			case strings.HasSuffix(name, _param):
+				out.Parameters = append(out.Parameters, encodeStd(path, fname, _param))
+			}
 		case eSIM:
 			out.Contracts = append(out.Contracts, encodeStd(path, fname, _contr))
 		}
@@ -409,16 +417,36 @@ func unpackJSON(filename string) {
 		}
 	}
 	if len(file.Parameters) > 0 {
-		byteValue, _ := json.MarshalIndent(file.Parameters, "", "    ")
-		value := string(byteValue)
-		name := dirParam + eJSON
-		writeFileString(name, value)
+		if singleSeparate {
+			byteValue, _ := json.MarshalIndent(file.Parameters, "", "    ")
+			value := string(byteValue)
+			name := dirParam + eJSON
+			writeFileString(name, value)
+		} else {
+			createDir(filepath.Join(outputName, dirParam))
+			for _, c := range file.Parameters {
+				value := c.Value
+				name := c.Name + _param + eCSV
+				name = filepath.Join(dirParam, name)
+				writeFileString(name, value)
+			}
+		}
 	}
 	if len(file.Languages) > 0 {
-		byteValue, _ := json.MarshalIndent(file.Languages, "", "    ")
-		value := string(byteValue)
-		name := dirLang + eJSON
-		writeFileString(name, value)
+		if singleSeparate {
+			byteValue, _ := json.MarshalIndent(file.Languages, "", "    ")
+			value := string(byteValue)
+			name := dirLang + eJSON
+			writeFileString(name, value)
+		} else {
+			createDir(filepath.Join(outputName, dirLang))
+			for _, c := range file.Languages {
+				value := c.Trans
+				name := c.Name + _lang + eJSON
+				name = filepath.Join(dirLang, name)
+				writeFileString(name, value)
+			}
+		}
 	}
 	if len(file.Tables) > 0 {
 		createDir(filepath.Join(outputName, dirTable))
