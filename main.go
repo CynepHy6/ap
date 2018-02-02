@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	currentVersion = "apla packager v0.6.3"
+	currentVersion = "apla packager v0.6.4"
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
@@ -567,6 +567,15 @@ func readConfig(out *exportFile) {
 			}
 		}
 	}
+	if len(config.Parameters) > 0 {
+		for c := range config.Parameters {
+			for o := range out.Parameters {
+				if config.Parameters[c].Name == out.Parameters[o].Name {
+					out.Parameters[o].Conditions = config.Parameters[c].Conditions
+				}
+			}
+		}
+	}
 	return
 }
 func writeConfig(bs []byte) {
@@ -612,6 +621,7 @@ type configFile struct {
 	Menus     *[]stdConf   `json:"menus"`
 	Pages     *[]pageConf  `json:"pages"`
 	Tables    *[]tableConf `json:"tables"`
+	Params    *[]stdConf   `json:"parameters"`
 }
 type stdConf struct {
 	Name       string
