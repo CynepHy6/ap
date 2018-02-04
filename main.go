@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	currentVersion = "apla packager v0.6.4"
+	currentVersion = "apla packager v0.6.5"
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
@@ -551,9 +551,9 @@ func readConfig(out *exportFile) {
 			for o := range out.Pages {
 				if config.Pages[c].Name == out.Pages[o].Name {
 					out.Pages[o].Conditions = config.Pages[c].Conditions
-				}
-				if len(config.Pages[c].Menu) > 0 {
-					out.Pages[o].Menu = config.Pages[c].Menu
+					if len(config.Pages[c].Menu) > 0 {
+						out.Pages[o].Menu = config.Pages[c].Menu
+					}
 				}
 			}
 		}
