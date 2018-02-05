@@ -2,7 +2,7 @@
 
 ### 0.6.+
 
-    fix restore menu from config
+    = fix restore menu from config
     + parameters unpack to '.csv'
     + add flag for combined in separate files
     + unescape "<>&" on stringify
@@ -18,13 +18,10 @@
 ### 0.4
 
     add:
-
     + pack-unpack data section
-
     + use dirs category on unpack
 
     remove:
-
     + 'prefix' flag
 
 ### 0.3
