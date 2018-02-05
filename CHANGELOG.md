@@ -17,12 +17,9 @@
 
 ### 0.4
 
-    add:
     + pack-unpack data section
     + use dirs category on unpack
-
-    remove:
-    + 'prefix' flag
+    - 'prefix' flag
 
 ### 0.3
 
