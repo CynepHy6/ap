@@ -2,6 +2,7 @@
 
 ### 0.6.+
 
+    fix restore menu from config
     + parameters unpack to '.csv'
     + add flag for combined in separate files
     + unescape "<>&" on stringify
