@@ -25,7 +25,8 @@ func SimpleGui() {
 			inputName = ui.OpenFile(wSelectFile)
 
 			if inputName != "" {
-				inputName = filepath.Dir(inputName) + separator
+				absPath, _ := filepath.Abs(inputName)
+				inputName = filepath.Dir(absPath) + separator
 				checkOutput()
 				ui.Quit()
 			}

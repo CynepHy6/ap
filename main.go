@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	currentVersion = "apla packager v0.6.5"
+	currentVersion = "apla packager v0.6.6"
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
@@ -278,7 +278,6 @@ func packDir(path string) (out exportFile) {
 }
 
 func encodePage(path, fname, sExt string) (result pageStruct) {
-	// result = make(map[string]string)
 	ext := filepath.Ext(fname)
 	name := fname[:len(fname)-len(ext)]
 	fpath := filepath.Join(path, fname)
@@ -510,8 +509,8 @@ func writeFileString(filename, content string) {
 }
 func readConfig(out *exportFile) {
 	config := exportFile{}
-
-	bs, err := ioutil.ReadFile(filepath.Join(outputName, configName))
+	absConfPath, _ := filepath.Abs(inputName)
+	bs, err := ioutil.ReadFile(filepath.Join(absConfPath, configName))
 	if err != nil {
 		if verbose {
 			fmt.Println("config file not found. use default values")
