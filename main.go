@@ -56,7 +56,73 @@ var (
 	version        bool
 	singleSeparate bool
 	dirs           []string
+	graph          bool
 )
+
+type configFile struct {
+	Blocks    *[]stdConf   `json:"blocks"`
+	Contracts *[]stdConf   `json:"contracts"`
+	Menus     *[]stdConf   `json:"menus"`
+	Pages     *[]pageConf  `json:"pages"`
+	Tables    *[]tableConf `json:"tables"`
+	Params    *[]stdConf   `json:"parameters"`
+}
+type stdConf struct {
+	Name       string
+	Conditions string
+}
+
+type pageConf struct {
+	Name       string
+	Conditions string
+	Menu       string
+}
+
+type tableConf struct {
+	Name        string
+	Permissions string
+}
+
+type exportFile struct {
+	Blocks     []stdStruct   `json:"blocks"`
+	Contracts  []stdStruct   `json:"contracts"`
+	Data       []dataStruct  `json:"data"`
+	Languages  []langStruct  `json:"languages"`
+	Menus      []stdStruct   `json:"menus"`
+	Pages      []pageStruct  `json:"pages"`
+	Parameters []stdStruct   `json:"parameters"`
+	Tables     []tableStruct `json:"tables"`
+}
+
+type stdStruct struct {
+	Name       string
+	Value      string
+	Conditions string
+}
+type langStruct struct {
+	Name       string
+	Conditions string
+	Trans      string
+}
+
+type pageStruct struct {
+	Name       string
+	Value      string
+	Conditions string
+	Menu       string
+}
+
+type tableStruct struct {
+	Name        string
+	Columns     string
+	Permissions string
+}
+
+type dataStruct struct {
+	Table   string
+	Columns []string
+	Data    [][]string
+}
 
 func init() {
 	flag.BoolVar(&unpack, "-unpack", false, "-u, unpacking mode")
@@ -76,6 +142,7 @@ func init() {
 	flag.BoolVar(&unpack, "u", false, "--unpack")
 	flag.BoolVar(&version, "v", false, "version")
 	flag.BoolVar(&singleSeparate, "s", false, "language and parameters will unpack to single separate files")
+	flag.BoolVar(&graph, "g", false, "visualize call graph of package using dot format")
 	flag.Parse()
 
 	dirs = []string{dirBlock, dirMenu, dirLang, dirTable, dirParam, dirData, dirPage, dirCon}
@@ -100,20 +167,16 @@ func main() {
 
 func checkOutput() {
 	if outputName == "output" && inputName != "." { // we have only inputname
+		parts := strings.Split(inputName, separator)
+		pLen := len(parts)
+		outputName = parts[pLen-1]
 		if unpack {
-			parts := strings.Split(inputName, separator)
-			pLen := len(parts)
-			outputName = parts[pLen-1]
 			ext := filepath.Ext(outputName)
 			outputName = outputName[:len(outputName)-len(ext)]
 			outputName = outputName + separator
 		} else {
-			parts := strings.Split(inputName, separator)
-			pLen := len(parts)
 			if strings.HasSuffix(inputName, separator) {
 				outputName = parts[pLen-2]
-			} else {
-				outputName = parts[pLen-1]
 			}
 		}
 	}
@@ -131,6 +194,11 @@ func checkOutput() {
 		}
 		if verbose {
 			fmt.Println("output dir name:", outputName)
+		}
+	} else {
+		if !strings.HasSuffix(inputName, separator) {
+			fmt.Println("please choose directory for paking, example:\n   ap -i dirfiles" + separator)
+			return
 		}
 	}
 }
@@ -612,69 +680,4 @@ func countEntries(file exportFile) (count int) {
 		len(file.Pages) +
 		len(file.Parameters) +
 		len(file.Tables)
-}
-
-type configFile struct {
-	Blocks    *[]stdConf   `json:"blocks"`
-	Contracts *[]stdConf   `json:"contracts"`
-	Menus     *[]stdConf   `json:"menus"`
-	Pages     *[]pageConf  `json:"pages"`
-	Tables    *[]tableConf `json:"tables"`
-	Params    *[]stdConf   `json:"parameters"`
-}
-type stdConf struct {
-	Name       string
-	Conditions string
-}
-
-type pageConf struct {
-	Name       string
-	Conditions string
-	Menu       string
-}
-
-type tableConf struct {
-	Name        string
-	Permissions string
-}
-
-type exportFile struct {
-	Blocks     []stdStruct   `json:"blocks"`
-	Contracts  []stdStruct   `json:"contracts"`
-	Data       []dataStruct  `json:"data"`
-	Languages  []langStruct  `json:"languages"`
-	Menus      []stdStruct   `json:"menus"`
-	Pages      []pageStruct  `json:"pages"`
-	Parameters []stdStruct   `json:"parameters"`
-	Tables     []tableStruct `json:"tables"`
-}
-
-type stdStruct struct {
-	Name       string
-	Value      string
-	Conditions string
-}
-type langStruct struct {
-	Name       string
-	Conditions string
-	Trans      string
-}
-
-type pageStruct struct {
-	Name       string
-	Value      string
-	Conditions string
-	Menu       string
-}
-
-type tableStruct struct {
-	Name        string
-	Columns     string
-	Permissions string
-}
-
-type dataStruct struct {
-	Table   string
-	Columns []string
-	Data    [][]string
 }
