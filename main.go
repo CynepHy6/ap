@@ -51,12 +51,12 @@ var (
 	outputName     string
 	inputName      string
 	permission     string
-	unpack         bool
+	unpackMode     bool
 	verbose        bool
 	version        bool
 	singleSeparate bool
 	dirs           []string
-	graph          bool
+	graphMode      bool
 )
 
 type configFile struct {
@@ -125,7 +125,7 @@ type dataStruct struct {
 }
 
 func init() {
-	flag.BoolVar(&unpack, "-unpack", false, "-u, unpacking mode")
+	flag.BoolVar(&unpackMode, "-unpack", false, "-u, unpacking mode")
 	flag.StringVar(&inputName, "-input", ".", "-i, path for input files, filename for pack and dirname/ (slashed) for unpack")
 	flag.StringVar(&outputName, "-output", "output", "-o, output filename for JSON if input file name not pointed")
 	flag.StringVar(&condition, "-conditions", "ContractConditions(\"MainCondition\")", "-c, conditions. Used if entry not founded in 'config.json'")
@@ -139,10 +139,11 @@ func init() {
 	flag.StringVar(&outputName, "o", "output", "--output")
 	flag.StringVar(&inputName, "i", ".", "--input")
 	flag.StringVar(&permission, "t", "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}", "--table-permission")
-	flag.BoolVar(&unpack, "u", false, "--unpack")
+	flag.BoolVar(&unpackMode, "u", false, "--unpack")
 	flag.BoolVar(&version, "v", false, "version")
 	flag.BoolVar(&singleSeparate, "s", false, "language and parameters will unpack to single separate files")
-	flag.BoolVar(&graph, "g", false, "visualize call graph of package using dot format")
+	flag.BoolVar(&graphMode, "g", false, "--graph")
+	flag.BoolVar(&graphMode, "-graph", false, "visualize call graph of package using dot format")
 	flag.Parse()
 
 	dirs = []string{dirBlock, dirMenu, dirLang, dirTable, dirParam, dirData, dirPage, dirCon}
@@ -158,9 +159,12 @@ func init() {
 }
 
 func main() {
-	if unpack {
+	switch {
+	case unpackMode:
 		unpackJSON(inputName)
-	} else {
+	case graphMode:
+		unpackJSON(inputName)
+	default:
 		packJSON(inputName)
 	}
 }
@@ -170,7 +174,7 @@ func checkOutput() {
 		parts := strings.Split(inputName, separator)
 		pLen := len(parts)
 		outputName = parts[pLen-1]
-		if unpack {
+		if unpackMode {
 			ext := filepath.Ext(outputName)
 			outputName = outputName[:len(outputName)-len(ext)]
 			outputName = outputName + separator
@@ -181,7 +185,7 @@ func checkOutput() {
 		}
 	}
 
-	if unpack {
+	if unpackMode {
 		if stats, err := os.Stat(inputName); inputName == "." || stats.IsDir() || err != nil {
 			if err != nil {
 				fmt.Println(err)

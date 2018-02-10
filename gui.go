@@ -32,7 +32,7 @@ func SimpleGui() {
 			}
 		})
 		btnUnpack.OnClicked(func(*ui.Button) {
-			unpack = true
+			unpackMode = true
 			wSelectFile := ui.NewWindow("select file", 300, 100, false)
 			inputName = ui.OpenFile(wSelectFile)
 
