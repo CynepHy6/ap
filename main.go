@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	currentVersion = "apla packager v0.6.6"
+	currentVersion = "apla packager v0.6.7"
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
@@ -57,6 +57,7 @@ var (
 	singleSeparate bool
 	dirs           []string
 	graphMode      bool
+	sufMode        bool
 )
 
 type configFile struct {
@@ -159,25 +160,26 @@ type graphStruct struct {
 }
 
 func init() {
-	flag.BoolVar(&unpackMode, "-unpack", false, "-u, unpacking mode")
-	flag.StringVar(&inputName, "-input", ".", "-i, path for input files, filename for pack and dirname/ (slashed) for unpack")
-	flag.StringVar(&outputName, "-output", "output", "-o, output filename for JSON if input file name not pointed")
-	flag.StringVar(&condition, "-conditions", "ContractConditions(\"MainCondition\")", "-c, conditions. Used if entry not founded in 'config.json'")
-	flag.StringVar(&menu, "-menu", "default_menu", "-m, menu. Used if entry not founded in 'config.json'")
-	flag.StringVar(&permission, "-table-permission", "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}", "-t, permission for tables. Used if entry not founded in 'config.json'")
-	flag.BoolVar(&verbose, "-verbose", false, "print log")
+	flag.BoolVar(&unpackMode, "unpack", false, "-u, unpacking mode")
+	flag.StringVar(&inputName, "input", ".", "-i, path for input files, filename for pack and dirname/ (slashed) for unpack")
+	flag.StringVar(&outputName, "output", "output", "-o, output filename for JSON if input file name not pointed")
+	flag.StringVar(&condition, "conditions", "ContractConditions(\"MainCondition\")", "-c, conditions. Used if entry not founded in 'config.json'")
+	flag.StringVar(&menu, "menu", "default_menu", "-m, menu. Used if entry not founded in 'config.json'")
+	flag.StringVar(&permission, "table-permission", "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}", "-t, permission for tables. Used if entry not founded in 'config.json'")
+	flag.BoolVar(&verbose, "verbose", false, "print log")
 
 	// shorthand
-	flag.StringVar(&menu, "m", "default_menu", "--menu")
+	flag.StringVar(&menu, "m", "default_menu", "-menu")
 	flag.StringVar(&condition, "c", "ContractConditions(\"MainCondition\")", "--conditions")
-	flag.StringVar(&outputName, "o", "output", "--output")
-	flag.StringVar(&inputName, "i", ".", "--input")
-	flag.StringVar(&permission, "t", "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}", "--table-permission")
-	flag.BoolVar(&unpackMode, "u", false, "--unpack")
-	flag.BoolVar(&version, "v", false, "version")
+	flag.StringVar(&outputName, "o", "output", "-output")
+	flag.StringVar(&inputName, "i", ".", "input")
+	flag.StringVar(&permission, "t", "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}", "table-permission")
+	flag.BoolVar(&unpackMode, "u", false, "-unpack")
+	flag.BoolVar(&version, "v", false, "-version")
 	flag.BoolVar(&singleSeparate, "s", false, "language and parameters will unpack to single separate files")
-	flag.BoolVar(&graphMode, "g", false, "--graph")
-	flag.BoolVar(&graphMode, "-graph", false, "visualize call graph of package using dot format")
+	flag.BoolVar(&graphMode, "g", false, "-graph")
+	flag.BoolVar(&graphMode, "graph", false, "visualize call graph of package using dot format")
+	flag.BoolVar(&sufMode, "suf", false, "unpack with suffixes for type")
 	flag.Parse()
 
 	dirs = []string{dirBlock, dirMenu, dirLang, dirTable, dirParam, dirData, dirPage, dirCon}
@@ -335,6 +337,9 @@ func packDir(path string) (out exportFile) {
 		return
 	}
 
+	absdir, _ := filepath.Abs(path)
+	absdirParts := strings.Split(absdir, separator)
+	fdir := absdirParts[len(absdirParts)-1]
 	for _, f := range files {
 		fname := f.Name()
 		ext := filepath.Ext(fname)
@@ -346,9 +351,9 @@ func packDir(path string) (out exportFile) {
 		switch ext {
 		case ePTL:
 			switch {
-			case strings.HasSuffix(name, _menu):
+			case strings.HasSuffix(name, _menu) || fdir == dirMenu:
 				out.Menus = append(out.Menus, encodeStd(path, fname, _menu))
-			case strings.HasSuffix(name, _block):
+			case strings.HasSuffix(name, _block) || fdir == dirBlock:
 				out.Blocks = append(out.Blocks, encodeStd(path, fname, _block))
 			default:
 				out.Pages = append(out.Pages, encodePage(path, fname, _page))
@@ -361,18 +366,18 @@ func packDir(path string) (out exportFile) {
 			case name == "languages":
 				p := filepath.Join(path, fname)
 				out.Languages = append(out.Languages, file2lang(p)...)
-			case strings.HasSuffix(name, _param):
+			case strings.HasSuffix(name, _param) || fdir == dirParam:
 				out.Parameters = append(out.Parameters, encodeStd(path, fname, _param))
-			case strings.HasSuffix(name, _lang):
+			case strings.HasSuffix(name, _lang) || fdir == dirLang:
 				out.Languages = append(out.Languages, encodeLang(path, fname, _lang))
-			case strings.HasSuffix(name, _table):
+			case strings.HasSuffix(name, _table) || fdir == dirTable:
 				out.Tables = append(out.Tables, encodeTable(path, fname, _table))
-			case strings.HasSuffix(name, _data):
+			case strings.HasSuffix(name, _data) || fdir == dirData:
 				out.Data = append(out.Data, encodeData(path, fname, _data))
 			}
 		case eCSV:
 			switch {
-			case strings.HasSuffix(name, _param):
+			case strings.HasSuffix(name, _param) || fdir == dirParam:
 				out.Parameters = append(out.Parameters, encodeStd(path, fname, _param))
 			}
 		case eSIM:
@@ -531,19 +536,31 @@ func unpackJSON(filename string) {
 		fmt.Println("unmarshal file error:", err)
 		return
 	}
-
-	unpackStruct(file.Contracts, eSIM, dirCon)
-	unpackStruct(file.Menus, _menu+ePTL, dirMenu)
-	unpackStruct(file.Blocks, _block+ePTL, dirBlock)
-	unpackStruct(file.Pages, ePTL, dirPage)
-	unpackStruct(file.Tables, _table+eJSON, dirTable)
-	unpackStruct(file.Parameters, _param+eCSV, dirParam)
-	unpackStruct(file.Languages, _lang+eJSON, dirLang)
+	if sufMode {
+		unpackStruct(file.Contracts, eSIM, dirCon)
+		unpackStruct(file.Menus, _menu+ePTL, dirMenu)
+		unpackStruct(file.Blocks, _block+ePTL, dirBlock)
+		unpackStruct(file.Pages, ePTL, dirPage)
+		unpackStruct(file.Tables, _table+eJSON, dirTable)
+		unpackStruct(file.Parameters, _param+eCSV, dirParam)
+		unpackStruct(file.Languages, _lang+eJSON, dirLang)
+	} else {
+		unpackStruct(file.Contracts, eSIM, dirCon)
+		unpackStruct(file.Menus, ePTL, dirMenu)
+		unpackStruct(file.Blocks, ePTL, dirBlock)
+		unpackStruct(file.Pages, ePTL, dirPage)
+		unpackStruct(file.Tables, eJSON, dirTable)
+		unpackStruct(file.Parameters, eCSV, dirParam)
+		unpackStruct(file.Languages, eJSON, dirLang)
+	}
 
 	if len(file.Data) > 0 {
 		createDir(filepath.Join(outputName, dirData))
 		for _, c := range file.Data {
-			name := c.Table + _data + eJSON
+			name := c.Table + eJSON
+			if sufMode {
+				name = c.Table + _data + eJSON
+			}
 			name = filepath.Join(dirData, name)
 			result, _ := json.MarshalIndent(c, "", "    ")
 			writeFileString(name, string(result))
