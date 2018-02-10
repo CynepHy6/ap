@@ -93,7 +93,25 @@ type exportFile struct {
 	Parameters []stdStruct   `json:"parameters"`
 	Tables     []tableStruct `json:"tables"`
 }
+type importFile struct {
+	Blocks     []commonStruct `json:"blocks"`
+	Contracts  []commonStruct `json:"contracts"`
+	Data       []dataStruct   `json:"data"`
+	Languages  []commonStruct `json:"languages"`
+	Menus      []commonStruct `json:"menus"`
+	Pages      []commonStruct `json:"pages"`
+	Parameters []commonStruct `json:"parameters"`
+	Tables     []commonStruct `json:"tables"`
+}
 
+type commonStruct struct {
+	Name       string
+	Value      string
+	Conditions string
+	Trans      string
+	Columns    string
+	Table      string
+}
 type stdStruct struct {
 	Name       string
 	Value      string
@@ -122,6 +140,22 @@ type dataStruct struct {
 	Table   string
 	Columns []string
 	Data    [][]string
+}
+
+type graphJSON struct {
+	Blocks     []graphStruct `json:"blocks"`
+	Contracts  []graphStruct `json:"contracts"`
+	Data       []graphStruct `json:"data"`
+	Languages  []graphStruct `json:"languages"`
+	Menus      []graphStruct `json:"menus"`
+	Pages      []graphStruct `json:"pages"`
+	Parameters []graphStruct `json:"parameters"`
+	Tables     []graphStruct `json:"tables"`
+}
+
+type graphStruct struct {
+	Name      string
+	Relations []string
 }
 
 func init() {
@@ -457,86 +491,55 @@ func file2lang(filename string) (result []langStruct) {
 	return
 }
 
+func unpackStruct(arr []commonStruct, tail, dir string) {
+	if len(arr) > 0 {
+		createDir(filepath.Join(outputName, separator))
+		if singleSeparate && (dir == dirLang || dir == dirParam) {
+			byteValue, _ := json.MarshalIndent(arr, "", "    ")
+			value := string(byteValue)
+			name := dir + eJSON
+			writeFileString(name, value)
+		} else {
+			createDir(filepath.Join(outputName, dir))
+			for _, c := range arr {
+				value := c.Value
+				if len(c.Columns) > 0 {
+					value = c.Columns
+				}
+				if len(c.Trans) > 0 {
+					value = c.Trans
+				}
+				name := c.Name + tail
+				if len(c.Table) > 0 {
+					name = c.Table
+				}
+				name = filepath.Join(dir, name)
+				writeFileString(name, value)
+			}
+		}
+	}
+}
+
 func unpackJSON(filename string) {
 	bs, err := ioutil.ReadFile(filename)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	file := exportFile{}
+	file := importFile{}
 	if err := json.Unmarshal(bs, &file); err != nil {
 		fmt.Println("unmarshal file error:", err)
 		return
 	}
 
-	if len(file.Contracts) > 0 {
-		createDir(filepath.Join(outputName, dirCon))
-		for _, c := range file.Contracts {
-			value := c.Value
-			name := c.Name + eSIM
-			name = filepath.Join(dirCon, name)
-			writeFileString(name, value)
-		}
-	}
-	if len(file.Menus) > 0 {
-		createDir(filepath.Join(outputName, dirMenu))
-		for _, c := range file.Menus {
-			value := c.Value
-			name := c.Name + _menu + ePTL
-			name = filepath.Join(dirMenu, name)
-			writeFileString(name, value)
-		}
-	}
-	if len(file.Parameters) > 0 {
-		if singleSeparate {
-			byteValue, _ := json.MarshalIndent(file.Parameters, "", "    ")
-			value := string(byteValue)
-			name := dirParam + eJSON
-			writeFileString(name, value)
-		} else {
-			createDir(filepath.Join(outputName, dirParam))
-			for _, c := range file.Parameters {
-				value := c.Value
-				name := c.Name + _param + eCSV
-				name = filepath.Join(dirParam, name)
-				writeFileString(name, value)
-			}
-		}
-	}
-	if len(file.Languages) > 0 {
-		if singleSeparate {
-			byteValue, _ := json.MarshalIndent(file.Languages, "", "    ")
-			value := string(byteValue)
-			name := dirLang + eJSON
-			writeFileString(name, value)
-		} else {
-			createDir(filepath.Join(outputName, dirLang))
-			for _, c := range file.Languages {
-				value := c.Trans
-				name := c.Name + _lang + eJSON
-				name = filepath.Join(dirLang, name)
-				writeFileString(name, value)
-			}
-		}
-	}
-	if len(file.Tables) > 0 {
-		createDir(filepath.Join(outputName, dirTable))
-		for _, c := range file.Tables {
-			value := c.Columns
-			name := c.Name + _table + eJSON
-			name = filepath.Join(dirTable, name)
-			writeFileString(name, value)
-		}
-	}
-	if len(file.Blocks) > 0 {
-		createDir(filepath.Join(outputName, dirBlock))
-		for _, c := range file.Blocks {
-			value := c.Value
-			name := c.Name + _block + ePTL
-			name = filepath.Join(dirBlock, name)
-			writeFileString(name, value)
-		}
-	}
+	unpackStruct(file.Contracts, eSIM, dirCon)
+	unpackStruct(file.Menus, _menu+ePTL, dirMenu)
+	unpackStruct(file.Blocks, _block+ePTL, dirBlock)
+	unpackStruct(file.Pages, ePTL, dirPage)
+	unpackStruct(file.Tables, _table+eJSON, dirTable)
+	unpackStruct(file.Parameters, _param+eCSV, dirParam)
+	unpackStruct(file.Languages, _lang+eJSON, dirLang)
+
 	if len(file.Data) > 0 {
 		createDir(filepath.Join(outputName, dirData))
 		for _, c := range file.Data {
@@ -546,17 +549,9 @@ func unpackJSON(filename string) {
 			writeFileString(name, string(result))
 		}
 	}
-	if len(file.Pages) > 0 {
-		createDir(filepath.Join(outputName, dirPage))
-		for _, c := range file.Pages {
-			value := c.Value
-			name := c.Name + ePTL
-			name = filepath.Join(dirPage, name)
-			writeFileString(name, value)
-		}
-	}
 	writeConfig(bs)
 }
+
 func createDir(path string) {
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
 		fmt.Println("error create dir", err)
