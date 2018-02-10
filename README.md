@@ -27,7 +27,7 @@ Simvolio and Protypo files packager to import on ecosystem
     -u, unpacking mode
 
 
-for view all flags please use "ap -h"
+Without flags will start gui. For view all flags please use "ap -h"
 
 ## build
 
