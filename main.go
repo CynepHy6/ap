@@ -53,8 +53,8 @@ var (
 	version        bool
 	singleSeparate bool
 	dirs           []string
-	graphMode      bool
-	sufMode        bool
+	// graphMode      bool
+	sufMode bool
 )
 
 type configFile struct {
@@ -140,22 +140,6 @@ type dataStruct struct {
 	Data    [][]string
 }
 
-type graphJSON struct {
-	Blocks     []graphStruct `json:"blocks"`
-	Contracts  []graphStruct `json:"contracts"`
-	Data       []graphStruct `json:"data"`
-	Languages  []graphStruct `json:"languages"`
-	Menus      []graphStruct `json:"menus"`
-	Pages      []graphStruct `json:"pages"`
-	Parameters []graphStruct `json:"parameters"`
-	Tables     []graphStruct `json:"tables"`
-}
-
-type graphStruct struct {
-	Name      string
-	Relations []string
-}
-
 func init() {
 	flag.BoolVar(&unpackMode, "unpack", false, "-u, unpacking mode")
 	flag.StringVar(&inputName, "input", ".", "-i, path for input files, filename for pack and dirname/ (slashed) for unpack")
@@ -174,8 +158,8 @@ func init() {
 	flag.BoolVar(&unpackMode, "u", false, "-unpack")
 	flag.BoolVar(&version, "v", false, "-version")
 	flag.BoolVar(&singleSeparate, "s", false, "language and parameters will unpack to single separate files")
-	flag.BoolVar(&graphMode, "g", false, "-graph")
-	flag.BoolVar(&graphMode, "graph", false, "visualize call graph of package using dot format")
+	// flag.BoolVar(&graphMode, "g", false, "-graph")
+	// flag.BoolVar(&graphMode, "graph", false, "visualize call graph of package using dot format")
 	flag.BoolVar(&sufMode, "suf", false, "unpack with suffixes for type")
 	flag.Parse()
 
@@ -194,8 +178,6 @@ func init() {
 func main() {
 	switch {
 	case unpackMode:
-		unpackJSON(inputName)
-	case graphMode:
 		unpackJSON(inputName)
 	default:
 		packJSON(inputName)
