@@ -1,6 +1,11 @@
 # Change Log
 
-### 0.6.+
+### 0.7.+
+
+    creating graphviz's dot file while unpacking mode
+    on default file names dont have type-suffixes while  unpack mode
+
+### 0.6
 
     = fix restore menu from config
     + parameters unpack to '.csv'
