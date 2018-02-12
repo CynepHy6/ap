@@ -66,7 +66,7 @@ func unpackJSON(filename string) {
 			writeFileString(name, string(result))
 		}
 	}
-	writeFileString("struct.dot", graphDot.String())
+	writeFileString("struct.gv", graphDot.String())
 	writeConfig(bs)
 }
 
