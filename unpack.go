@@ -24,7 +24,7 @@ func unpackJSON(filename string) {
 	graphDot.SetType(dot.DIGRAPH)
 	graphDot.Set("rankdir", "LR")
 	graphDot.Set("labelfontsize", "20.0")
-	graphDot.Set("label", outputName)
+	graphDot.Set("label", strings.Trim(outputName, separator))
 
 	bs, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -100,7 +100,7 @@ func unpackStruct(arr []commonStruct, tail, dir string, graph *dot.Graph) {
 				case dirTable:
 					fallthrough
 				case dirMenu:
-					node := dot.NewNode(fmt.Sprintf("%s|%s", name, dir))
+					node := dot.NewNode(fmt.Sprintf("%s\n%s", name, strings.TrimSuffix(dir, "s")))
 					if dir == dirPage {
 						node.Set("fontcolor", "green")
 					}
@@ -147,7 +147,7 @@ func addNode(parentNode *dot.Node, pat *regexp.Regexp, str, dir string) {
 		for i := range match {
 			if i > 0 {
 				if match[i] != "" {
-					node := dot.NewNode(fmt.Sprintf("%s|%s", match[i], dir))
+					node := dot.NewNode(fmt.Sprintf("%s\n%s", match[i], strings.TrimSuffix(dir, "s")))
 					node.Set("group", dir)
 					edge := dot.NewEdge(parentNode, node)
 					graphDot.AddEdge(edge)

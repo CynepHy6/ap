@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	currentVersion = "apla packager v0.7.2"
+	currentVersion = "apla packager v0.7.3"
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
