@@ -122,7 +122,6 @@ func getNodeName(name, dir string) (_name string) {
 }
 
 func writeGraph(name string) {
-	fmt.Println(name)
 	outFile, err := os.Create(name)
 	if err != nil {
 		fmt.Println("error write file:", err)
