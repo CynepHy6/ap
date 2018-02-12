@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	currentVersion = "apla packager v0.7.3"
+	currentVersion = "apla packager v0.7.4"
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
@@ -243,4 +243,12 @@ func writeFileString(filename, content string) {
 		fmt.Println("extract:", outFile.Name())
 	}
 
+}
+func stringInSlice(arr []string, val string) bool {
+	for _, v := range arr {
+		if v == val {
+			return true
+		}
+	}
+	return false
 }

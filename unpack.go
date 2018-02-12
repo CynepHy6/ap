@@ -7,24 +7,35 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/tmc/dot"
 )
 
+const (
+	structFileName = "struct.dot"
+	pageColor      = "green"
+	contrColor     = "red"
+	menuColor      = "blue"
+)
+
 var (
-	graphDot    = dot.NewGraph("G")
-	contr2Contr = regexp.MustCompile("[^(Join|info|warning|error|LangRes|FindEcosystem|CallContract|ContractAccess|ContractConditions|EvalCondition|ValidateCondition|AddressToId|Contains|Float|HasPrefix|HexToBytes|Int|Len|PubToID|IdToAddress|Money|Replace|Size|Sha256|Sprintf|Str|Substr|UpdateLang|SysParamString|SysParamInt|UpdateSysParam|EcosysParam|DBFind|DBInsert|DBInsertReport|DBUpdate|DBUpdateExt|DBRow|DBIntExt|DBStringExt)]\\s*\\(@?.*?\\)")
-	page2Contr  = regexp.MustCompile("\\(.*?Contract:\\s*(@?\\w+)")
-	page2Page   = regexp.MustCompile("\\(.*?Page:\\s*(\\w+)")
-	contr2Table = regexp.MustCompile("(?:DBFind|DBInsert|DBUpdate|DBUpdateExt|DBRow)\\s*\\(\\s*[\"\\`]([\\w]+?)\"")
-	page2Table  = regexp.MustCompile("DBFind\\s*\\(\\s*Name:\\s*(.*?)[,\\s]|DBFind\\s*\\(\\s*([^:]*?)[,\\s]")
+	graphMap     = map[string][]string{}
+	graphDot     = dot.NewGraph("G")
+	contr2Contr  = regexp.MustCompile("[^(Join|info|warning|error|LangRes|FindEcosystem|CallContract|ContractAccess|ContractConditions|EvalCondition|ValidateCondition|AddressToId|Contains|Float|HasPrefix|HexToBytes|Int|Len|PubToID|IdToAddress|Money|Replace|Size|Sha256|Sprintf|Str|Substr|UpdateLang|SysParamString|SysParamInt|UpdateSysParam|EcosysParam|DBFind|DBInsert|DBInsertReport|DBUpdate|DBUpdateExt|DBRow|DBIntExt|DBStringExt)]\\s*\\(@?.*?\\)")
+	page2Contr   = regexp.MustCompile("\\(.*?Contract:\\s*(@?\\w+)")
+	page2Page    = regexp.MustCompile("\\(.*?Page:\\s*(\\w+)")
+	contr2Table  = regexp.MustCompile("(?:DBFind|DBInsert|DBUpdate|DBUpdateExt|DBRow)\\s*\\(\\s*[\"\\`]([\\w]+?)\"")
+	page2Table   = regexp.MustCompile("DBFind\\s*\\(\\s*Name:\\s*(.*?)[,\\s]|DBFind\\s*\\(\\s*([^:]*?)[\\),\\s]")
+	includeBlock = regexp.MustCompile("Include\\s*\\(\\s*Name:\\s*(.*?)[,\\s]|Include\\s*\\(\\s*([^:]*?)[\\),\\s]")
 )
 
 func unpackJSON(filename string) {
 	graphDot.SetType(dot.DIGRAPH)
 	graphDot.Set("rankdir", "LR")
-	graphDot.Set("labelfontsize", "20.0")
-	graphDot.Set("label", strings.Trim(outputName, separator))
+	graphDot.Set("fontsize", "20.0")
+	labelGraph := fmt.Sprintf("%s %s", strings.Trim(outputName, separator), time.Now().Format(time.RFC850))
+	graphDot.Set("label", labelGraph)
 
 	bs, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -66,8 +77,9 @@ func unpackJSON(filename string) {
 			writeFileString(name, string(result))
 		}
 	}
-	writeFileString("struct.dot", graphDot.String())
+
 	writeConfig(bs)
+	writeFileString(structFileName, graphDot.String())
 }
 
 func unpackStruct(arr []commonStruct, tail, dir string, graph *dot.Graph) {
@@ -99,20 +111,22 @@ func unpackStruct(arr []commonStruct, tail, dir string, graph *dot.Graph) {
 					fallthrough
 				case dirTable:
 					fallthrough
+				case dirBlock:
+					fallthrough
 				case dirMenu:
-					node := dot.NewNode(fmt.Sprintf("%s\n%s", name, strings.TrimSuffix(dir, "s")))
-					if dir == dirPage {
-						node.Set("fontcolor", "green")
+					node := dot.NewNode(getNodeName(name, dir))
+					if dir == dirPage || dir == dirBlock {
+						node.Set("fontcolor", pageColor)
 					}
 					if dir == dirCon {
-						node.Set("fontcolor", "red")
+						node.Set("fontcolor", contrColor)
 					}
 					if dir == dirMenu {
-						node.Set("fontcolor", "blue")
+						node.Set("fontcolor", menuColor)
 					}
 					node.Set("group", dir)
 					if dir != dirTable {
-						getEdges(node, value, dir)
+						addEdges(node, value, dir)
 					}
 					graph.AddNode(node)
 				}
@@ -125,34 +139,67 @@ func unpackStruct(arr []commonStruct, tail, dir string, graph *dot.Graph) {
 
 }
 
-func getEdges(parentNode *dot.Node, s, dir string) {
+func addEdges(parentNode *dot.Node, s, dir string) {
 	switch dir {
 	case dirCon:
-		addNode(parentNode, contr2Contr, s, dir)
-		addNode(parentNode, contr2Table, s, dirTable)
+		addNode(parentNode, contr2Contr, s, dir, "")
+		addNode(parentNode, contr2Table, s, dirTable, "")
 	case dirPage:
-		addNode(parentNode, page2Contr, s, dirCon)
-		addNode(parentNode, page2Table, s, dirTable)
-		addNode(parentNode, page2Page, s, dir)
+		addNode(parentNode, page2Contr, s, dirCon, "")
+		addNode(parentNode, page2Table, s, dirTable, "")
+		addNode(parentNode, page2Page, s, dir, "")
+		addNode(parentNode, includeBlock, s, dirBlock, "Include")
+	case dirBlock:
+		addNode(parentNode, page2Contr, s, dirCon, "")
+		addNode(parentNode, page2Table, s, dirTable, "")
+		addNode(parentNode, page2Page, s, dir, "")
 	case dirMenu:
-		addNode(parentNode, page2Page, s, dirPage)
+		addNode(parentNode, page2Page, s, dirPage, "")
 		// fmt.Println(graphDot)
 	}
 }
 
-func addNode(parentNode *dot.Node, pat *regexp.Regexp, str, dir string) {
+func addNode(parentNode *dot.Node, pat *regexp.Regexp, str, dir, label string) {
 	s := strings.Replace(str, "`", `"`, -1)
 	arr := pat.FindAllStringSubmatch(s, -1)
 	for _, match := range arr {
 		for i := range match {
 			if i > 0 {
 				if match[i] != "" {
-					node := dot.NewNode(fmt.Sprintf("%s\n%s", match[i], strings.TrimSuffix(dir, "s")))
-					node.Set("group", dir)
-					edge := dot.NewEdge(parentNode, node)
-					graphDot.AddEdge(edge)
+					name := getNodeName(match[i], dir)
+					if !stringInSlice(graphMap[parentNode.Name()], name) { // check exist node tops
+						node := dot.NewNode(name)
+						node.Set("group", dir)
+						if _, ok := graphMap[parentNode.Name()]; !ok {
+							graphMap[parentNode.Name()] = []string{}
+						}
+						edge := dot.NewEdge(parentNode, node)
+						if label != "" {
+							edge.Set("label", label)
+						}
+						switch dir {
+						case dirPage:
+							edge.Set("color", pageColor)
+						case dirCon:
+							edge.Set("color", contrColor)
+						case dirBlock:
+							edge.Set("color", pageColor)
+						case dirMenu:
+							edge.Set("color", menuColor)
+						}
+						graphDot.AddEdge(edge)
+						graphMap[parentNode.Name()] = append(graphMap[parentNode.Name()], name)
+					}
 				}
 			}
 		}
 	}
+}
+
+func getNodeName(name, dir string) (_name string) {
+	_name = fmt.Sprintf("%s\n%s", name, strings.TrimSuffix(dir, "s"))
+	if strings.Contains(_name, ",") {
+		_name = strings.Join(strings.Split(_name, ","), "\n")
+	}
+	return
 }
