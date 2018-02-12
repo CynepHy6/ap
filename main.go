@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	currentVersion = "apla packager v0.7.4"
+	currentVersion = "apla packager v0.7.5"
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
@@ -39,6 +39,11 @@ const (
 	//
 	configName = "config.json"
 	separator  = string(os.PathSeparator)
+
+	structFileName = "struct.dot"
+	pageColor      = "green"
+	contrColor     = "red"
+	menuColor      = "blue"
 )
 
 var (
@@ -239,11 +244,8 @@ func writeFileString(filename, content string) {
 		fmt.Println(err)
 		return
 	}
-	if verbose {
-		fmt.Println("extract:", outFile.Name())
-	}
-
 }
+
 func stringInSlice(arr []string, val string) bool {
 	for _, v := range arr {
 		if v == val {

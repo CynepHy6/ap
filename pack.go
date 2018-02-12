@@ -11,7 +11,7 @@ import (
 )
 
 func packJSON(path string) {
-
+	initGraph()
 	out := packDir(path)
 
 	path = filepath.Dir(path)
@@ -72,6 +72,11 @@ func packJSON(path string) {
 		}
 		defer outFile.Close()
 		outFile.WriteString(string(result))
+
+		if abs, err := filepath.Abs(path); err == nil {
+			abspath := filepath.Join(abs, structFileName)
+			writeGraph(abspath)
+		}
 	}
 	if verbose {
 		fmt.Println("not found files")
@@ -107,11 +112,17 @@ func packDir(path string) (out exportFile) {
 		case ePTL:
 			switch {
 			case strings.HasSuffix(name, _menu) || fdir == dirMenu:
-				out.Menus = append(out.Menus, encodeStd(path, fname, _menu))
+				el := encodeStd(path, fname, _menu)
+				createNodeForString(el.Name, fdir, el.Value)
+				out.Menus = append(out.Menus, el)
 			case strings.HasSuffix(name, _block) || fdir == dirBlock:
-				out.Blocks = append(out.Blocks, encodeStd(path, fname, _block))
+				el := encodeStd(path, fname, _block)
+				createNodeForString(el.Name, fdir, el.Value)
+				out.Blocks = append(out.Blocks, el)
 			default:
-				out.Pages = append(out.Pages, encodePage(path, fname, _page))
+				el := encodePage(path, fname, _page)
+				createNodeForString(el.Name, fdir, el.Value)
+				out.Pages = append(out.Pages, el)
 			}
 		case eJSON:
 			switch {
@@ -136,9 +147,10 @@ func packDir(path string) (out exportFile) {
 				out.Parameters = append(out.Parameters, encodeStd(path, fname, _param))
 			}
 		case eSIM:
-			out.Contracts = append(out.Contracts, encodeStd(path, fname, _contr))
+			el := encodeStd(path, fname, _contr)
+			createNodeForString(el.Name, fdir, el.Value)
+			out.Contracts = append(out.Contracts, el)
 		}
-
 	}
 	return
 }
