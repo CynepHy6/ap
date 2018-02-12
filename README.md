@@ -14,6 +14,8 @@ Simvolio and Protypo files packager to import on ecosystem
 
 ## Usage of "ap"
 
+Without flags will start GUI. For view all flags please use "ap -h"
+
 --input string
 
     -i, path for input files (default ".")
@@ -27,8 +29,6 @@ Simvolio and Protypo files packager to import on ecosystem
     -u, unpacking mode
 
 
-Without flags will start gui. For view all flags please use "ap -h"
-
 ## build
 
 ### linux
@@ -38,3 +38,7 @@ Without flags will start gui. For view all flags please use "ap -h"
 ### windows
 
     go build -ldflags -H=windowsgui
+
+## struct.gv
+
+Is created when you unpack. Shows the structure of an application. Can be opened using [GraphViz](http://graphviz.org/download/)
