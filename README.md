@@ -1,6 +1,7 @@
 # apla packager
 
-Simvolio and Protypo files packager to import on ecosystem
+Simvolio and Protypo files packager for import to ecosystem.
+Utilite that can convert import json bundle from/to files of simvolio, protypo, csv, json.
 
 ## Examples
 
