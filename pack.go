@@ -272,22 +272,31 @@ func _JSONMarshal(v interface{}, unescape bool) ([]byte, error) {
 	}
 	return b, err
 }
-func sortContracts(c []stdStruct) (res []stdStruct) {
-	// sorting contracts by used in other contracts
-	res = c
-	lenC := len(c)
-	for i := lenC - 1; i > 0; i-- {
-		name := c[i].Name
-		for j := i - 1; j >= 0; j-- {
-			value := c[j].Value
-			if strings.Contains(value, name) {
-				c[i], c[j] = c[j], c[i]
+func sortContracts(c []stdStruct) []stdStruct {
+	nn := int(len(c) / 2)
+	for n := 0; n < nn; n++ {
+		for i := len(c) - 1; i > 0; i-- {
+			for j := i - 1; j >= 0; j-- {
+				if textContainsName(c[j].Value, c[i].Name) {
+					c[i], c[j] = c[j], c[i]
+					break
+				}
 			}
 		}
 	}
-	return
+	return c
 }
 
+func textContainsName(text, name string) bool {
+	lines := strings.Split(text, "\n")
+	for _, l := range lines {
+		line := strings.Trim(l, " ")
+		if !strings.HasPrefix(line, "//") && strings.Contains(line, name) {
+			return true
+		}
+	}
+	return false
+}
 func countEntries(file exportFile) (count int) {
 	return len(file.Blocks) +
 		len(file.Contracts) +
