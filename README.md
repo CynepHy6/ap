@@ -42,4 +42,4 @@ Without flags will start GUI. For view all flags please use "ap -h"
 
 ## struct.dot
 
-Is created when you unpack. Shows the structure of an application. Can be opened using [graphviz](http://graphviz.org/download/) or [webgraphviz](http://webgraphviz.com/)
+Is created when you pack/unpack. Shows the structure of an application. Can be opened using [graphviz](http://graphviz.org/download/) or [webgraphviz](http://webgraphviz.com/)
