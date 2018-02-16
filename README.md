@@ -36,9 +36,13 @@ Without flags will start GUI. For view all flags please use "ap -h"
 
     go build
 
-### windows
+### on windows
 
     go build -ldflags -H=windowsgui
+
+### on linuxfor windows
+
+    env GOARCH=amd64 GOOS=windows CGO_ENABLED=1 goeCC=/usr/bin/x86_64-w64-mingw32-gcc CXX=/usr/bin/x86_64-w64-mingw32-g++  go build
 
 ## struct.dot
 
