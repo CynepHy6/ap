@@ -24,8 +24,8 @@ var (
 func initGraph() {
 	graphDot.SetType(dot.DIGRAPH)
 	graphDot.Set("rankdir", "LR")
-	graphDot.Set("fontsize", "20.0")
-	labelGraph := fmt.Sprintf("%s %s", strings.Trim(outputName, separator), time.Now().Format(time.RFC850))
+	graphDot.Set("fontsize", "30.0")
+	labelGraph := fmt.Sprintf("%s\n%s", strings.Trim(outputName, separator), time.Now().Format(time.RFC850))
 	graphDot.Set("label", labelGraph)
 }
 
@@ -62,14 +62,18 @@ func createNodeForString(name, dir, value string) {
 		node := dot.NewNode(getNodeName(name, dir))
 		if dir == dirPage || dir == dirBlock {
 			node.Set("fontcolor", pageColor)
+			node.Set("color", pageColor)
 		}
 		if dir == dirCon {
 			node.Set("fontcolor", contrColor)
+			node.Set("color", contrColor)
 		}
 		if dir == dirMenu {
 			node.Set("fontcolor", menuColor)
+			node.Set("color", menuColor)
 		}
-		node.Set("group", dir)
+		group := parseGroup(name, dir)
+		node.Set("group", group)
 		if dir != dirTable {
 			addEdges(node, value, dir)
 		}
@@ -85,8 +89,11 @@ func addNode(parentNode *dot.Node, pat *regexp.Regexp, str, dir, label string) {
 				if match[i] != "" {
 					name := getNodeName(match[i], dir)
 					if !stringInSlice(graphMap[parentNode.Name()], name) { // check exist node tops
+						group := parseGroup(name, dir)
+						name = strings.Trim(name, `"`)
+						name = strings.Trim(name, "`")
 						node := dot.NewNode(name)
-						node.Set("group", dir)
+						node.Set("group", group)
 						if _, ok := graphMap[parentNode.Name()]; !ok {
 							graphMap[parentNode.Name()] = []string{}
 						}
@@ -132,4 +139,28 @@ func writeGraph(name string) {
 		fmt.Println(err)
 		return
 	}
+}
+
+func parseGroup(n, dir string) string {
+	name := underscore(n)
+	if strings.Contains(name, "_") {
+		parts := strings.Split(name, "_")
+		return strings.ToLower(parts[0])
+	}
+	return dir
+}
+
+var camel = regexp.MustCompile("(^[^A-Z0-9]*|[A-Z0-9]*)([A-Z0-9][^A-Z]+|$)")
+
+func underscore(s string) string {
+	var a []string
+	for _, sub := range camel.FindAllStringSubmatch(s, -1) {
+		if sub[1] != "" {
+			a = append(a, sub[1])
+		}
+		if sub[2] != "" {
+			a = append(a, sub[2])
+		}
+	}
+	return strings.ToLower(strings.Join(a, "_"))
 }
