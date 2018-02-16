@@ -169,19 +169,20 @@ func main() {
 		// without args run gui
 		SimpleGui()
 	} else {
-		if argsCount == 2 {
+		if argsCount >= 2 {
 			if version {
 				fmt.Println(currentVersion)
-			} else {
-				name := args[1]
-				inputName = name
-				if !strings.HasSuffix(name, separator) { // if filename run unpack
-					unpackMode = true
-				}
 			}
-		} else {
-			if version {
-				fmt.Println(currentVersion)
+			name := args[1]
+			if stats, err := os.Stat(name); err == nil {
+				if stats.IsDir() {
+					inputName = name
+				} else if stats.Mode() != os.ModeType {
+					unpackMode = true
+					inputName = name
+				}
+			} else {
+				fmt.Println(err)
 			}
 		}
 		checkOutput()
