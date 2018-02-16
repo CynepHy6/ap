@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	currentVersion = "apla packager v0.8"
+	currentVersion = "apla packager v0.8.1"
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
@@ -172,19 +172,25 @@ func init() {
 	if version {
 		fmt.Println(currentVersion)
 	}
-	args := os.Args
-	if len(args) == 1 {
-		SimpleGui()
-	} else {
-		checkOutput()
-	}
 }
 
 func main() {
-	switch {
-	case unpackMode:
+	args := os.Args
+	if argsCount := len(args); argsCount == 1 {
+		SimpleGui()
+	} else {
+		if argsCount == 2 {
+			name := args[1]
+			inputName = name
+			if !strings.HasSuffix(name, separator) {
+				unpackMode = true
+			}
+		}
+		checkOutput()
+	}
+	if unpackMode {
 		unpackJSON(inputName)
-	default:
+	} else {
 		packJSON(inputName)
 	}
 }
