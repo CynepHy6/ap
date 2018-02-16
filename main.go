@@ -8,60 +8,6 @@ import (
 	"strings"
 )
 
-const (
-	currentVersion = "apla packager v0.8.2"
-
-	eSIM  = ".sim"
-	ePTL  = ".ptl"
-	eJSON = ".json"
-	eCSV  = ".csv"
-
-	// file suffixes
-	_block = "__block"
-	_menu  = "__menu"
-	_lang  = "__language"
-	_table = "__table"
-	_param = "__parameter"
-	_data  = "__data"
-	_page  = "__page"
-	_contr = "__contract"
-
-	//dirs
-	dirBlock = "blocks"
-	dirMenu  = "menus"
-	dirLang  = "languages"
-	dirTable = "tables"
-	dirParam = "parameters"
-	dirData  = "data"
-	dirPage  = "pages"
-	dirCon   = "contracts"
-
-	//
-	configName = "config.json"
-	separator  = string(os.PathSeparator)
-
-	structFileName = "struct.dot"
-	pageColor      = "green"
-	contrColor     = "red"
-	menuColor      = "blue"
-)
-
-var (
-	// flags
-	condition      string
-	menu           string
-	outputName     string
-	inputName      string
-	permission     string
-	unpackMode     bool
-	verbose        bool
-	version        bool
-	singleSeparate bool
-	dirs           []string
-	// graphMode      bool
-	sufMode bool
-)
-
 type configFile struct {
 	Blocks    *[]stdConf   `json:"blocks"`
 	Contracts *[]stdConf   `json:"contracts"`
@@ -145,45 +91,97 @@ type dataStruct struct {
 	Data    [][]string
 }
 
+const (
+	currentVersion = "apla packager v0.8.2"
+
+	eSIM  = ".sim"
+	ePTL  = ".ptl"
+	eJSON = ".json"
+	eCSV  = ".csv"
+
+	// file suffixes
+	_block = "__block"
+	_menu  = "__menu"
+	_lang  = "__language"
+	_table = "__table"
+	_param = "__parameter"
+	_data  = "__data"
+	_page  = "__page"
+	_contr = "__contract"
+
+	//dirs
+	dirBlock = "blocks"
+	dirMenu  = "menus"
+	dirLang  = "languages"
+	dirTable = "tables"
+	dirParam = "parameters"
+	dirData  = "data"
+	dirPage  = "pages"
+	dirCon   = "contracts"
+
+	//
+	configName = "config.json"
+	separator  = string(os.PathSeparator)
+
+	structFileName = "struct.dot"
+	pageColor      = "green"
+	contrColor     = "red"
+	menuColor      = "blue"
+
+	// help messages
+	helpMsg = "please choose directory for paking, example:\n    ap dirfiles" + separator + "\nor file to unpacking, example:\n    ap file.json"
+)
+
+var (
+	// flags
+	condition      = "ContractConditions(\"MainCondition\")"
+	menu           = "default_menu"
+	outputName     string
+	inputName      string
+	permission     = "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}"
+	unpackMode     bool
+	debug          bool
+	version        bool
+	singleSeparate bool
+	// graphMode      bool
+	sufMode bool
+	dirs    = []string{dirBlock, dirMenu, dirLang, dirTable, dirParam, dirData, dirPage, dirCon}
+)
+
 func init() {
 	flag.BoolVar(&unpackMode, "unpack", false, "-u, unpacking mode")
 	flag.StringVar(&inputName, "input", ".", "-i, path for input files, filename for pack and dirname/ (slashed) for unpack")
 	flag.StringVar(&outputName, "output", "output", "-o, output filename for JSON if input file name not pointed")
-	flag.StringVar(&condition, "conditions", "ContractConditions(\"MainCondition\")", "-c, conditions. Used if entry not founded in 'config.json'")
-	flag.StringVar(&menu, "menu", "default_menu", "-m, menu. Used if entry not founded in 'config.json'")
-	flag.StringVar(&permission, "table-permission", "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}", "-t, permission for tables. Used if entry not founded in 'config.json'")
-	flag.BoolVar(&verbose, "verbose", false, "print log")
 
 	// shorthand
-	flag.StringVar(&menu, "m", "default_menu", "-menu")
-	flag.StringVar(&condition, "c", "ContractConditions(\"MainCondition\")", "--conditions")
 	flag.StringVar(&outputName, "o", "output", "-output")
 	flag.StringVar(&inputName, "i", ".", "input")
-	flag.StringVar(&permission, "t", "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}", "table-permission")
 	flag.BoolVar(&unpackMode, "u", false, "-unpack")
 	flag.BoolVar(&version, "v", false, "-version")
-	flag.BoolVar(&singleSeparate, "s", false, "language and parameters will unpack to single separate files")
-	// flag.BoolVar(&graphMode, "g", false, "-graph")
-	// flag.BoolVar(&graphMode, "graph", false, "visualize call graph of package using dot format")
-	flag.BoolVar(&sufMode, "suf", false, "unpack with suffixes for type")
+	flag.BoolVar(&debug, "d", false, "debug")
 	flag.Parse()
-
-	dirs = []string{dirBlock, dirMenu, dirLang, dirTable, dirParam, dirData, dirPage, dirCon}
-	if version {
-		fmt.Println(currentVersion)
-	}
 }
 
 func main() {
 	args := os.Args
+
 	if argsCount := len(args); argsCount == 1 {
+		// without args run gui
 		SimpleGui()
 	} else {
 		if argsCount == 2 {
-			name := args[1]
-			inputName = name
-			if !strings.HasSuffix(name, separator) {
-				unpackMode = true
+			if version {
+				fmt.Println(currentVersion)
+			} else {
+				name := args[1]
+				inputName = name
+				if !strings.HasSuffix(name, separator) { // if filename run unpack
+					unpackMode = true
+				}
+			}
+		} else {
+			if version {
+				fmt.Println(currentVersion)
 			}
 		}
 		checkOutput()
@@ -216,18 +214,18 @@ func checkOutput() {
 			if err != nil {
 				fmt.Println(err)
 			}
-			fmt.Println("please choose file for unpaking, example:\n ap -u -i file.json")
-			return //todo: create batch unpacking on Dir
+			fmt.Println(helpMsg)
+			return
 		}
 		if !strings.HasSuffix(outputName, separator) {
 			outputName = outputName + separator
 		}
-		if verbose {
+		if debug {
 			fmt.Println("output dir name:", outputName)
 		}
 	} else {
 		if !strings.HasSuffix(inputName, separator) {
-			fmt.Println("please choose directory for paking, example:\n   ap -i dirfiles" + separator)
+			fmt.Println(helpMsg)
 			return
 		}
 	}

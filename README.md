@@ -7,28 +7,11 @@ Utilite that can convert import json bundle from/to files of simvolio, protypo, 
 
 ### Unpack file from "basic.sim" to "./basic/"
 
->ap -u -i basic.sim
+>ap basic.sim
 
 ### Pack files from "basic/" to ./basic.json
 
->ap -i basic/
-
-## Usage of "ap"
-
-Without flags will start GUI. For view all flags please use "ap -h"
-
---input string
-
-    -i, path for input files (default ".")
-
---output string
-
-    -o, output filename for JSON (default "output" if "input" not found)
-
---unpack
-
-    -u, unpacking mode
-
+>ap basic/
 
 ## build
 
@@ -40,9 +23,9 @@ Without flags will start GUI. For view all flags please use "ap -h"
 
     go build -ldflags -H=windowsgui
 
-### on linuxfor windows
+### on linux for windows
 
-    env GOARCH=amd64 GOOS=windows CGO_ENABLED=1 goeCC=/usr/bin/x86_64-w64-mingw32-gcc CXX=/usr/bin/x86_64-w64-mingw32-g++  go build
+    env GOARCH=amd64 GOOS=windows CGO_ENABLED=1 CC=/usr/bin/x86_64-w64-mingw32-gcc CXX=/usr/bin/x86_64-w64-mingw32-g++  go build -ldflags -H=windowsgui
 
 ## struct.dot
 

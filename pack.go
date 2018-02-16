@@ -23,7 +23,7 @@ func packJSON(path string) {
 	for _, f := range files {
 		fname := f.Name()
 		fpath := filepath.Join(path, fname)
-		if verbose {
+		if debug {
 			fmt.Println(fpath)
 		}
 		sf, err := os.Stat(fpath)
@@ -65,7 +65,7 @@ func packJSON(path string) {
 		}
 		outFile, err := os.Create(outputName)
 		if err != nil {
-			if verbose {
+			if debug {
 				fmt.Println(err)
 			}
 			return
@@ -78,7 +78,7 @@ func packJSON(path string) {
 			writeGraph(abspath)
 		}
 	}
-	if verbose {
+	if debug {
 		fmt.Println("not found files")
 	}
 }
@@ -104,7 +104,7 @@ func packDir(path string) (out exportFile) {
 		fname := f.Name()
 		ext := filepath.Ext(fname)
 		name := fname[:len(fname)-len(ext)]
-		if verbose {
+		if debug {
 			fmt.Println(fname)
 		}
 
