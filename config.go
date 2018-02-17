@@ -13,7 +13,7 @@ func readConfig(out *exportFile) {
 	bs, err := ioutil.ReadFile(filepath.Join(absConfPath, configName))
 	if err != nil {
 		if debug {
-			fmt.Println("config file not found. use default values")
+			fmt.Println("config file not found. used default values")
 		}
 		return
 	}

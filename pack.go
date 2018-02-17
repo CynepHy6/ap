@@ -163,10 +163,10 @@ func encodePage(path, fname, sExt string) (result pageStruct) {
 		// remove suffix
 		name = name[:len(name)-len(sExt)]
 	}
-	result.Menu = menu
+	result.Menu = defaultMenu
 	result.Name = name
 	result.Value = file2str(fpath)
-	result.Conditions = condition
+	result.Conditions = defaultCondition
 	return
 }
 func encodeData(path, fname, sExt string) (result dataStruct) {
@@ -195,7 +195,7 @@ func encodeTable(path, fname, sExt string) (result tableStruct) {
 	}
 	result.Name = name
 	result.Columns = file2str(fpath)
-	result.Permissions = permission
+	result.Permissions = defaultPermission
 	return
 }
 func encodeLang(path, fname, sExt string) (result langStruct) {
@@ -223,7 +223,7 @@ func encodeStd(path, fname, sExt string) (result stdStruct) {
 	}
 	result.Name = name
 	result.Value = file2str(fpath)
-	result.Conditions = condition
+	result.Conditions = defaultCondition
 	return
 }
 
