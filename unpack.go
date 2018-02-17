@@ -8,8 +8,6 @@ import (
 )
 
 func unpackJSON(filename string) {
-	initGraph()
-
 	bs, err := ioutil.ReadFile(filename)
 	if err != nil {
 		fmt.Println(err)
@@ -38,22 +36,15 @@ func unpackJSON(filename string) {
 			writeFileString(name, string(result))
 		}
 	}
-
 	writeConfig(bs)
 	if abs, err := filepath.Abs(outputName); err == nil {
-		writeGraph(filepath.Join(abs, structFileName))
+		abspath := filepath.Join(abs, structFileName)
+		createGraph(abspath)
 	}
 }
 
 func unpackStruct(arr []commonStruct, tail, dir string) {
 	if len(arr) > 0 {
-		createDir(filepath.Join(outputName, separator))
-		// if singleSeparate && (dir == dirLang || dir == dirParam) {
-		// 	byteValue, _ := json.MarshalIndent(arr, "", "    ")
-		// 	value := string(byteValue)
-		// 	name := dir + eJSON
-		// 	writeFileString(name, value)
-		// } else {
 		createDir(filepath.Join(outputName, dir))
 		for _, c := range arr {
 			value := c.Value
@@ -67,11 +58,9 @@ func unpackStruct(arr []commonStruct, tail, dir string) {
 			if len(c.Table) > 0 {
 				name = c.Table
 			}
-			createNodeForString(name, dir, value)
 			nameTail := name + tail
 			nameTail = filepath.Join(dir, nameTail)
 			writeFileString(nameTail, value)
 		}
-		// }
 	}
 }

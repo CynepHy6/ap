@@ -11,7 +11,6 @@ import (
 )
 
 func packJSON(path string) {
-	initGraph()
 	out := packDir(path)
 
 	path = filepath.Dir(path)
@@ -75,7 +74,7 @@ func packJSON(path string) {
 
 		if abs, err := filepath.Abs(path); err == nil {
 			abspath := filepath.Join(abs, structFileName)
-			writeGraph(abspath)
+			createGraph(abspath)
 		}
 	}
 	if debug {
@@ -113,15 +112,12 @@ func packDir(path string) (out exportFile) {
 			switch {
 			case strings.HasSuffix(name, _menu) || fdir == dirMenu:
 				el := encodeStd(path, fname, _menu)
-				createNodeForString(el.Name, fdir, el.Value)
 				out.Menus = append(out.Menus, el)
 			case strings.HasSuffix(name, _block) || fdir == dirBlock:
 				el := encodeStd(path, fname, _block)
-				createNodeForString(el.Name, fdir, el.Value)
 				out.Blocks = append(out.Blocks, el)
 			default:
 				el := encodePage(path, fname, _page)
-				createNodeForString(el.Name, fdir, el.Value)
 				out.Pages = append(out.Pages, el)
 			}
 		case eJSON:
@@ -148,7 +144,6 @@ func packDir(path string) (out exportFile) {
 			}
 		case eSIM:
 			el := encodeStd(path, fname, _contr)
-			createNodeForString(el.Name, fdir, el.Value)
 			out.Contracts = append(out.Contracts, el)
 		}
 	}
@@ -160,7 +155,6 @@ func encodePage(path, fname, sExt string) (result pageStruct) {
 	name := fname[:len(fname)-len(ext)]
 	fpath := filepath.Join(path, fname)
 	if strings.HasSuffix(name, sExt) {
-		// remove suffix
 		name = name[:len(name)-len(sExt)]
 	}
 	result.Menu = defaultMenu
@@ -175,7 +169,6 @@ func encodeData(path, fname, sExt string) (result dataStruct) {
 	name := fname[:len(fname)-len(ext)]
 	fpath := filepath.Join(path, fname)
 	if strings.HasSuffix(name, sExt) {
-		// remove suffix
 		name = name[:len(name)-len(sExt)]
 	}
 	result.Table = name
@@ -185,12 +178,10 @@ func encodeData(path, fname, sExt string) (result dataStruct) {
 	return
 }
 func encodeTable(path, fname, sExt string) (result tableStruct) {
-	// result = make(map[string]string)
 	ext := filepath.Ext(fname)
 	name := fname[:len(fname)-len(ext)]
 	fpath := filepath.Join(path, fname)
 	if strings.HasSuffix(name, sExt) {
-		// remove suffix
 		name = name[:len(name)-len(sExt)]
 	}
 	result.Name = name
@@ -203,7 +194,6 @@ func encodeLang(path, fname, sExt string) (result langStruct) {
 	name := fname[:len(fname)-len(ext)]
 	fpath := filepath.Join(path, fname)
 	if strings.HasSuffix(name, sExt) {
-		// remove suffix
 		name = name[:len(name)-len(sExt)]
 	}
 	result.Name = name
@@ -213,12 +203,10 @@ func encodeLang(path, fname, sExt string) (result langStruct) {
 }
 
 func encodeStd(path, fname, sExt string) (result stdStruct) {
-	// result = make(map[string]string)
 	ext := filepath.Ext(fname)
 	name := fname[:len(fname)-len(ext)]
 	fpath := filepath.Join(path, fname)
 	if strings.HasSuffix(name, sExt) {
-		// remove suffix
 		name = name[:len(name)-len(sExt)]
 	}
 	result.Name = name

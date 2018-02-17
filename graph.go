@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -11,110 +13,175 @@ import (
 )
 
 var (
-	graphMap     = map[string][]string{}
-	graphDot     = dot.NewGraph("G")
-	contr2Contr  = regexp.MustCompile("[^(Join|info|warning|error|LangRes|FindEcosystem|CallContract|ContractAccess|ContractConditions|EvalCondition|ValidateCondition|AddressToId|Contains|Float|HasPrefix|HexToBytes|Int|Len|PubToID|IdToAddress|Money|Replace|Size|Sha256|Sprintf|Str|Substr|UpdateLang|SysParamString|SysParamInt|UpdateSysParam|EcosysParam|DBFind|DBInsert|DBInsertReport|DBUpdate|DBUpdateExt|DBRow|DBIntExt|DBStringExt)]\\s*\\(@?.*?\\)")
+	graphMap      = map[string][]string{}
+	dirsGraph     = []string{dirBlock, dirMenu, dirTable, dirPage, dirCon}
+	graphDot      = dot.NewGraph("G")
+	contractsList = []string{}
+	graphColors   = map[string]string{
+		dirPage:  "green",
+		dirCon:   "red",
+		dirMenu:  "blue",
+		dirBlock: "green",
+	}
 	page2Contr   = regexp.MustCompile("\\(.*?Contract:\\s*(@?\\w+)")
 	page2Page    = regexp.MustCompile("\\(.*?Page:\\s*(\\w+)")
-	contr2Table  = regexp.MustCompile("(?:DBFind|DBInsert|DBUpdate|DBUpdateExt|DBRow)\\s*\\(\\s*[\"\\`]([\\w]+?)[\"`]")
+	contr2Table  = regexp.MustCompile("(?:DBFind|DBInsert|DBUpdate|DBUpdateExt|DBRow)\\s*\\(\\s*[\"]([\\w]+?)[\"]")
 	page2Table   = regexp.MustCompile("DBFind\\s*\\(\\s*Name:\\s*(.*?)[,\\s]|DBFind\\s*\\(\\s*([^:]*?)[\\),\\s]")
 	includeBlock = regexp.MustCompile("Include\\s*\\(\\s*Name:\\s*(.*?)[,\\s]|Include\\s*\\(\\s*([^:]*?)[\\),\\s]")
 )
 
-func initGraph() {
+func createGraph(filename string) {
 	graphDot.SetType(dot.DIGRAPH)
+	// graphDot.Set("rankdir", "TD")
 	graphDot.Set("rankdir", "LR")
-	graphDot.Set("fontsize", "30.0")
-	labelGraph := fmt.Sprintf("%s\n%s", strings.Trim(outputName, separator), time.Now().Format(time.RFC850))
+	graphDot.Set("fontsize", "24.0")
+	label := strings.Trim(outputName, separator)
+	label = strings.Trim(label, ".json")
+	labelGraph := fmt.Sprintf("%s\n%s", label, time.Now().Format(time.RFC850))
 	graphDot.Set("label", labelGraph)
+
+	graphList := []graphStruct{}
+	dir := filepath.Dir(filename)
+	dirAbs, _ := filepath.Abs(dir)
+	files, err := ioutil.ReadDir(dirAbs)
+	if err != nil {
+		return
+	}
+
+	for _, f := range files {
+		fname := f.Name()
+		fpath := filepath.Join(dirAbs, fname)
+		if debug {
+			fmt.Println(fpath)
+		}
+		sf, err := os.Stat(fpath)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		if sf.IsDir() && stringInSlice(dirsGraph, fname) {
+			graphList = append(graphList, dirToGraph(fpath)...)
+		}
+	}
+	for _, gs := range graphList {
+		createNodeWithEdges(&gs)
+		// fmt.Println(gs)
+	}
+	writeGraph(filename)
 }
 
-func addEdges(parentNode *dot.Node, s, dir string) {
-	switch dir {
-	case dirCon:
-		addNode(parentNode, contr2Contr, s, dir, "")
-		addNode(parentNode, contr2Table, s, dirTable, "")
-	case dirPage:
-		addNode(parentNode, page2Contr, s, dirCon, "")
-		addNode(parentNode, page2Table, s, dirTable, "")
-		addNode(parentNode, page2Page, s, dir, "")
-		addNode(parentNode, includeBlock, s, dirBlock, "Include")
-	case dirBlock:
-		addNode(parentNode, page2Contr, s, dirCon, "")
-		addNode(parentNode, page2Table, s, dirTable, "")
-		addNode(parentNode, page2Page, s, dir, "")
-	case dirMenu:
-		addNode(parentNode, page2Page, s, dirPage, "")
-		// fmt.Println(graphDot)
+func dirToGraph(path string) (out []graphStruct) {
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return
 	}
-}
-func createNodeForString(name, dir, value string) {
-	switch dir { // parse graph
-	case dirPage:
-		fallthrough
-	case dirCon:
-		fallthrough
-	case dirTable:
-		fallthrough
-	case dirBlock:
-		fallthrough
-	case dirMenu:
-		node := dot.NewNode(getNodeName(name, dir))
-		if dir == dirPage || dir == dirBlock {
-			node.Set("fontcolor", pageColor)
-			node.Set("color", pageColor)
+
+	dirAbs, _ := filepath.Abs(path)
+	dirAbsParts := strings.Split(dirAbs, separator)
+	dir := dirAbsParts[len(dirAbsParts)-1]
+	for _, f := range files {
+		nameExt := f.Name()
+		ext := filepath.Ext(nameExt)
+		name := nameExt[:len(nameExt)-len(ext)]
+		fileAbs, _ := filepath.Abs(filepath.Join(path, nameExt))
+		if debug {
+			fmt.Println(nameExt)
 		}
-		if dir == dirCon {
-			node.Set("fontcolor", contrColor)
-			node.Set("color", contrColor)
+		if stringInSlice(dirsGraph, dir) {
+			gs := graphStruct{}
+			gs.Name = name
+			if dir != dirTable {
+				gs.Value = file2str(fileAbs)
+			}
+			if dir == dirBlock {
+				gs.EdgeLabel = "include"
+			}
+			gs.Group = parseGroup(name)
+			gs.Dir = dir
+			gs.Color = graphColors[dir]
+			gs.FontColor = graphColors[dir]
+			out = append(out, gs)
+
+			if dir == dirCon {
+				contractsList = append(contractsList, name)
+			}
 		}
-		if dir == dirMenu {
-			node.Set("fontcolor", menuColor)
-			node.Set("color", menuColor)
-		}
-		group := parseGroup(name, dir)
-		node.Set("group", group)
-		if dir != dirTable {
-			addEdges(node, value, dir)
-		}
-		graphDot.AddNode(node)
 	}
+	return
 }
-func addNode(parentNode *dot.Node, pat *regexp.Regexp, str, dir, label string) {
-	s := strings.Replace(str, "`", `"`, -1)
+
+func createNodeWithEdges(gs *graphStruct) {
+	node := dot.NewNode(getNodeName(gs.Name, gs.Dir))
+	if stringInSlice(dirsGraph, gs.Dir) {
+		node.Set("fontcolor", gs.FontColor)
+		node.Set("color", gs.Color)
+		node.Set("group", gs.Group)
+	}
+
+	switch gs.Dir {
+	case dirCon:
+		createContractNodes(node, gs, dirCon)
+		createNodes(node, contr2Table, gs, dirTable)
+	case dirPage:
+		createNodes(node, page2Contr, gs, dirCon)
+		createNodes(node, page2Table, gs, dirTable)
+		createNodes(node, page2Page, gs, dirPage)
+		createNodes(node, includeBlock, gs, dirBlock)
+	case dirBlock:
+		createNodes(node, page2Contr, gs, dirCon)
+		createNodes(node, page2Table, gs, dirTable)
+		createNodes(node, page2Page, gs, dirPage)
+	case dirMenu:
+		createNodes(node, page2Page, gs, dirPage)
+	}
+
+	graphDot.AddNode(node)
+}
+
+func createNodes(parentNode *dot.Node, pat *regexp.Regexp, gs *graphStruct, dir string) {
+	s := strings.Replace(gs.Value, "`", `"`, -1)
 	arr := pat.FindAllStringSubmatch(s, -1)
 	for _, match := range arr {
 		for i := range match {
 			if i > 0 {
 				if match[i] != "" {
-					name := getNodeName(match[i], dir)
-					if !stringInSlice(graphMap[parentNode.Name()], name) { // check exist node tops
-						group := parseGroup(name, dir)
-						name = strings.Trim(name, `"`)
-						name = strings.Trim(name, "`")
-						node := dot.NewNode(name)
-						node.Set("group", group)
-						if _, ok := graphMap[parentNode.Name()]; !ok {
-							graphMap[parentNode.Name()] = []string{}
-						}
-						edge := dot.NewEdge(parentNode, node)
-						if label != "" {
-							edge.Set("label", label)
-						}
-						switch dir {
-						case dirPage:
-							edge.Set("color", pageColor)
-						case dirCon:
-							edge.Set("color", contrColor)
-						case dirBlock:
-							edge.Set("color", pageColor)
-						case dirMenu:
-							edge.Set("color", menuColor)
-						}
-						graphDot.AddEdge(edge)
-						graphMap[parentNode.Name()] = append(graphMap[parentNode.Name()], name)
+					name := match[i]
+					if !stringInSlice(graphMap[parentNode.Name()], name) { // check exist graph heads
+						createNode(parentNode, name, dir, gs)
 					}
 				}
+			}
+		}
+	}
+}
+
+func createNode(parentNode *dot.Node, n, dir string, gs *graphStruct) {
+	name := getNodeName(n, dir)
+	parentName := parentNode.Name()
+	node := dot.NewNode(name)
+	node.Set("fontcolor", graphColors[dir])
+	node.Set("color", graphColors[dir])
+	node.Set("group", gs.Group)
+	if _, ok := graphMap[parentName]; !ok {
+		graphMap[parentName] = []string{}
+	}
+	edge := dot.NewEdge(parentNode, node)
+	if gs.EdgeLabel != "" {
+		edge.Set("label", gs.EdgeLabel)
+	}
+	edge.Set("color", gs.Color)
+
+	graphDot.AddEdge(edge)
+	graphMap[parentName] = append(graphMap[parentName], n)
+}
+
+func createContractNodes(parentNode *dot.Node, gs *graphStruct, dir string) {
+	s := strings.Replace(gs.Value, "`", `"`, -1)
+	for _, name := range contractsList {
+		if name != gs.Name && strings.Contains(s, name) {
+			if !stringInSlice(graphMap[parentNode.Name()], name) { // check exist graph heads
+				createNode(parentNode, name, dir, gs)
 			}
 		}
 	}
@@ -125,6 +192,8 @@ func getNodeName(name, dir string) (_name string) {
 	if strings.Contains(_name, ",") {
 		_name = strings.Join(strings.Split(_name, ","), "\n")
 	}
+	_name = strings.Trim(_name, `"`)
+	_name = strings.Trim(_name, "`")
 	return
 }
 
@@ -141,13 +210,13 @@ func writeGraph(name string) {
 	}
 }
 
-func parseGroup(n, dir string) string {
+func parseGroup(n string) string {
 	name := underscore(n)
 	if strings.Contains(name, "_") {
 		parts := strings.Split(name, "_")
 		return strings.ToLower(parts[0])
 	}
-	return dir
+	return "basic"
 }
 
 var camel = regexp.MustCompile("(^[^A-Z0-9]*|[A-Z0-9]*)([A-Z0-9][^A-Z]+|$)")

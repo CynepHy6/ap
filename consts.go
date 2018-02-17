@@ -35,9 +35,6 @@ const (
 	configName        = "config.json"
 	separator         = string(os.PathSeparator)
 	structFileName    = "struct.dot"
-	pageColor         = "green"
-	contrColor        = "red"
-	menuColor         = "blue"
 
 	//
 	helpMsg = "please choose directory for paking, example:\n    ap dirfiles" + separator + "\nor file to unpacking, example:\n    ap file.json"
@@ -124,4 +121,15 @@ type dataStruct struct {
 	Table   string
 	Columns []string
 	Data    [][]string
+}
+
+type graphStruct struct {
+	Name      string
+	Value     string
+	Group     string
+	Path      string
+	Dir       string
+	FontColor string
+	Color     string
+	EdgeLabel string
 }
