@@ -17,6 +17,7 @@ var (
 	dirsGraph     = []string{dirBlock, dirMenu, dirTable, dirPage, dirCon}
 	graphDot      = dot.NewGraph("G")
 	contractsList = []string{}
+	labelType     = "label"
 	graphColors   = map[string]string{
 		dirPage:  "green",
 		dirCon:   "red",
@@ -38,7 +39,7 @@ func createGraph(filename string) {
 	label := strings.Trim(outputName, separator)
 	label = strings.Trim(label, ".json")
 	labelGraph := fmt.Sprintf("%s\n%s", label, time.Now().Format(time.RFC850))
-	graphDot.Set("label", labelGraph)
+	graphDot.Set(labelType, labelGraph)
 
 	graphList := []graphStruct{}
 	dir := filepath.Dir(filename)
@@ -94,9 +95,7 @@ func dirToGraph(path string) (out []graphStruct) {
 			if dir != dirTable {
 				gs.Value = file2str(fileAbs)
 			}
-			if dir == dirBlock {
-				gs.EdgeLabel = "include"
-			}
+
 			gs.Group = parseGroup(name)
 			gs.Dir = dir
 			gs.Color = graphColors[dir]
@@ -162,15 +161,18 @@ func createNode(parentNode *dot.Node, n, dir string, gs *graphStruct) {
 	node := dot.NewNode(name)
 	node.Set("fontcolor", graphColors[dir])
 	node.Set("color", graphColors[dir])
-	node.Set("group", gs.Group)
+	// if dir == dirTable {
+	node.Set("group", name)
+	// }
+	// node.Set("group", gs.Group)
 	if _, ok := graphMap[parentName]; !ok {
 		graphMap[parentName] = []string{}
 	}
 	edge := dot.NewEdge(parentNode, node)
-	if gs.EdgeLabel != "" {
-		edge.Set("label", gs.EdgeLabel)
+	if dir == dirBlock {
+		edge.Set(labelType, "include")
 	}
-	edge.Set("color", gs.Color)
+	edge.Set("color", graphColors[dir])
 
 	graphDot.AddEdge(edge)
 	graphMap[parentName] = append(graphMap[parentName], n)

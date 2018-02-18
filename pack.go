@@ -77,9 +77,6 @@ func packJSON(path string) {
 			createGraph(abspath)
 		}
 	}
-	if debug {
-		fmt.Println("not found files")
-	}
 }
 func packDir(path string) (out exportFile) {
 	out.Blocks = []stdStruct{}
