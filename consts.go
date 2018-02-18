@@ -3,7 +3,7 @@ package main
 import "os"
 
 const (
-	currentVersion = "apla packager 0.8.2"
+	currentVersion = "apla packager 0.8.3"
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"
