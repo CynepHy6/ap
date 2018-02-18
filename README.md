@@ -26,12 +26,10 @@ Without arguments starts the GUI
 
 ## build
 
-Windows tip. If you do not plan to work in the console, add "-ldflags -H=windowsgui" 
+Windows tip. If you do not plan to work in the console, add "-ldflags -H=windowsgui"
 
 >go build
 
 ### on linux for windows
 
  >env GOARCH=amd64 GOOS=windows CGO_ENABLED=1 CC=/usr/bin/x86_64-w64-mingw32-gcc CXX=/usr/bin/x86_64-w64-mingw32-g++  go build
-
-
