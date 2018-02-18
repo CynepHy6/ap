@@ -1,4 +1,4 @@
-# apla packager
+# Applications Packager
 
 Simvolio and Protypo files packager for import into the Ecosystems created in the AplaProject/GenesisKernel blockchain.
 Utilite that can convert import json bundle from/to files of simvolio, protypo, csv, json.
