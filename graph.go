@@ -14,15 +14,21 @@ import (
 
 var (
 	graphMap      = map[string][]string{}
-	dirsGraph     = []string{dirBlock, dirMenu, dirTable, dirPage, dirCon}
+	dirsGraph     = []string{dirCon, dirPage, dirBlock, dirTable, dirMenu}
 	graphDot      = dot.NewGraph("G")
 	contractsList = []string{}
 	labelType     = "label"
-	graphColors   = map[string]string{
+	nodeColors    = map[string]string{
 		dirPage:  "green",
 		dirCon:   "red",
 		dirMenu:  "blue",
 		dirBlock: "green",
+	}
+	nodeShapes = map[string]string{
+		dirPage:  "record",
+		dirCon:   "record",
+		dirMenu:  "record",
+		dirBlock: "record",
 	}
 	page2Contr   = regexp.MustCompile("\\(.*?Contract:\\s*(@?\\w+)")
 	page2Page    = regexp.MustCompile("\\(.*?Page:\\s*(\\w+)")
@@ -36,6 +42,7 @@ func createGraph(filename string) {
 	// graphDot.Set("rankdir", "TD")
 	graphDot.Set("rankdir", "LR")
 	graphDot.Set("fontsize", "24.0")
+
 	label := strings.Trim(outputName, separator)
 	label = strings.Trim(label, ".json")
 	labelGraph := fmt.Sprintf("%s\n%s", label, time.Now().Format(time.RFC850))
@@ -67,7 +74,6 @@ func createGraph(filename string) {
 	}
 	for _, gs := range graphList {
 		createNodeWithEdges(&gs)
-		// fmt.Println(gs)
 	}
 	writeGraph(filename)
 }
@@ -96,8 +102,8 @@ func dirToGraph(path string) (out []graphStruct) {
 
 			gs.Group = parseGroup(name)
 			gs.Dir = dir
-			gs.Color = graphColors[dir]
-			gs.FontColor = graphColors[dir]
+			gs.Color = nodeColors[dir]
+			gs.FontColor = nodeColors[dir]
 			out = append(out, gs)
 
 			if dir == dirCon {
@@ -110,11 +116,7 @@ func dirToGraph(path string) (out []graphStruct) {
 
 func createNodeWithEdges(gs *graphStruct) {
 	node := dot.NewNode(getNodeName(gs.Name, gs.Dir))
-	if stringInSlice(dirsGraph, gs.Dir) {
-		node.Set("fontcolor", gs.FontColor)
-		node.Set("color", gs.Color)
-		node.Set("group", gs.Dir)
-	}
+	settingsNode(node, gs.Dir)
 
 	switch gs.Dir {
 	case dirCon:
@@ -153,24 +155,36 @@ func createNodes(parentNode *dot.Node, pat *regexp.Regexp, gs *graphStruct, dir 
 	}
 }
 
-func createNode(parentNode *dot.Node, n, dir string, gs *graphStruct) {
-	name := getNodeName(n, dir)
+func settingsNode(node *dot.Node, dir string) {
+	node.Set("fontcolor", nodeColors[dir])
+	node.Set("color", nodeColors[dir])
+	node.Set("rank", "same")
+	node.Set("group", dir)
+	node.Set("shape", nodeShapes[dir])
+}
+
+func createNode(parentNode *dot.Node, nameOrig, dir string, gs *graphStruct) {
+	name := getNodeName(nameOrig, dir)
 	parentName := parentNode.Name()
 	node := dot.NewNode(name)
-	node.Set("fontcolor", graphColors[dir])
-	node.Set("color", graphColors[dir])
-	node.Set("group", dir)
+	settingsNode(node, dir)
+
 	if _, ok := graphMap[parentName]; !ok {
 		graphMap[parentName] = []string{}
 	}
+
 	edge := dot.NewEdge(parentNode, node)
+	if dir == dirTable && (gs.Dir == dirPage || gs.Dir == dirBlock) {
+		edge = dot.NewEdge(node, parentNode)
+	}
+
 	if dir == dirBlock {
 		edge.Set(labelType, "include")
 	}
-	edge.Set("color", graphColors[dir])
+	edge.Set("color", nodeColors[dir])
 
 	graphDot.AddEdge(edge)
-	graphMap[parentName] = append(graphMap[parentName], n)
+	graphMap[parentName] = append(graphMap[parentName], nameOrig)
 }
 
 func createContractNodes(parentNode *dot.Node, gs *graphStruct, dir string) {
