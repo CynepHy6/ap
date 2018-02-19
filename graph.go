@@ -86,9 +86,7 @@ func dirToGraph(path string) (out []graphStruct) {
 		ext := filepath.Ext(nameExt)
 		name := nameExt[:len(nameExt)-len(ext)]
 		fileAbs, _ := filepath.Abs(filepath.Join(path, nameExt))
-		if debug {
-			fmt.Println(nameExt)
-		}
+
 		if stringInSlice(dirsGraph, dir) {
 			gs := graphStruct{}
 			gs.Name = name
@@ -115,7 +113,7 @@ func createNodeWithEdges(gs *graphStruct) {
 	if stringInSlice(dirsGraph, gs.Dir) {
 		node.Set("fontcolor", gs.FontColor)
 		node.Set("color", gs.Color)
-		node.Set("group", gs.Group)
+		node.Set("group", gs.Dir)
 	}
 
 	switch gs.Dir {
@@ -161,10 +159,7 @@ func createNode(parentNode *dot.Node, n, dir string, gs *graphStruct) {
 	node := dot.NewNode(name)
 	node.Set("fontcolor", graphColors[dir])
 	node.Set("color", graphColors[dir])
-	// if dir == dirTable {
-	node.Set("group", name)
-	// }
-	// node.Set("group", gs.Group)
+	node.Set("group", dir)
 	if _, ok := graphMap[parentName]; !ok {
 		graphMap[parentName] = []string{}
 	}
@@ -194,8 +189,8 @@ func getNodeName(name, dir string) (_name string) {
 	if strings.Contains(_name, ",") {
 		_name = strings.Join(strings.Split(_name, ","), "\n")
 	}
-	_name = strings.Trim(_name, `"`)
-	_name = strings.Trim(_name, "`")
+	_name = strings.Replace(_name, `"`, "", -1)
+	_name = strings.Replace(_name, "`", "", -1)
 	return
 }
 
