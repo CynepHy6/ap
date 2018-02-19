@@ -3,7 +3,8 @@ package main
 import "os"
 
 const (
-	currentVersion = "Applications Packager 0.8.3"
+	currentVersion = "0.8.4"
+	currentTitle   = "Applications Packager " + currentVersion
 
 	eSIM  = ".sim"
 	ePTL  = ".ptl"

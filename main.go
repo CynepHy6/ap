@@ -12,6 +12,7 @@ var (
 	outputName     string
 	inputName      string
 	unpackMode     bool
+	packMode       bool
 	debug          bool
 	version        bool
 	singleSeparate bool
@@ -40,11 +41,12 @@ func main() {
 	} else {
 		if argsCount >= 2 {
 			if version {
-				fmt.Println(currentVersion)
+				fmt.Println(currentTitle)
 			}
 			name := args[1]
 			if stats, err := os.Stat(name); err == nil {
 				if stats.IsDir() {
+					packMode = true
 					inputName = name
 				} else if stats.Mode() != os.ModeType {
 					unpackMode = true
@@ -58,7 +60,7 @@ func main() {
 	}
 	if unpackMode {
 		unpackJSON(inputName)
-	} else {
+	} else if packMode {
 		packJSON(inputName)
 	}
 }

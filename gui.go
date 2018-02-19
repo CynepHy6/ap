@@ -17,10 +17,11 @@ func SimpleGui() {
 		box := ui.NewHorizontalBox()
 		box.Append(btnPack, true)
 		box.Append(btnUnpack, true)
-		window := ui.NewWindow(currentVersion, 300, 100, false)
+		window := ui.NewWindow(currentTitle, 300, 100, false)
 		window.SetMargined(true)
 		window.SetChild(box)
 		btnPack.OnClicked(func(*ui.Button) {
+			packMode = true
 			wSelectFile := ui.NewWindow("select dir", 300, 100, false)
 			inputName = ui.OpenFile(wSelectFile)
 
