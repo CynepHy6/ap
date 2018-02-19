@@ -39,7 +39,9 @@ func main() {
 		// without args run gui
 		SimpleGui()
 	} else {
-		if argsCount >= 2 {
+		if argsCount == 2 && version {
+			fmt.Println(currentTitle)
+		} else if argsCount >= 2 {
 			if version {
 				fmt.Println(currentTitle)
 			}
