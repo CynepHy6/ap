@@ -14,7 +14,7 @@ import (
 
 var (
 	graphMap      = map[string][]string{}
-	dirsGraph     = []string{dirCon, dirPage, dirBlock, dirTable, dirMenu}
+	dirsGraph     = []string{dirMenu, dirPage, dirBlock, dirCon, dirTable}
 	graphDot      = dot.NewGraph("G")
 	contractsList = []string{}
 	labelType     = "label"
@@ -42,6 +42,9 @@ func createGraph(filename string) {
 	// graphDot.Set("rankdir", "TD")
 	graphDot.Set("rankdir", "LR")
 	graphDot.Set("fontsize", "24.0")
+	graphDot.Set("nojustify", "true")
+	graphDot.Set("size", "30")
+	graphDot.Set("ordering", "out")
 
 	label := strings.Trim(outputName, separator)
 	label = strings.Trim(label, ".json")
@@ -72,8 +75,12 @@ func createGraph(filename string) {
 			graphList = append(graphList, dirToGraph(fpath)...)
 		}
 	}
-	for _, gs := range graphList {
-		createNodeWithEdges(&gs)
+	for _, dGraph := range dirsGraph {
+		for _, gs := range graphList {
+			if gs.Dir == dGraph {
+				createNodeWithEdges(&gs)
+			}
+		}
 	}
 	writeGraph(filename)
 }
@@ -99,11 +106,8 @@ func dirToGraph(path string) (out []graphStruct) {
 			if dir != dirTable {
 				gs.Value = file2str(fileAbs)
 			}
-
 			gs.Group = parseGroup(name)
 			gs.Dir = dir
-			gs.Color = nodeColors[dir]
-			gs.FontColor = nodeColors[dir]
 			out = append(out, gs)
 
 			if dir == dirCon {
@@ -174,7 +178,7 @@ func createNode(parentNode *dot.Node, nameOrig, dir string, gs *graphStruct) {
 	}
 
 	edge := dot.NewEdge(parentNode, node)
-	if dir == dirTable && (gs.Dir == dirPage || gs.Dir == dirBlock) {
+	if dir == dirTable && gs.Dir != dirCon {
 		edge = dot.NewEdge(node, parentNode)
 	}
 
