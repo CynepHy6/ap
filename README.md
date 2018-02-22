@@ -3,6 +3,7 @@
 Simvolio and Protypo files packager for import into the Ecosystems created in the AplaProject/GenesisKernel blockchain.
 Utilite that can convert import json bundle from/to files of simvolio, protypo, csv, json.
 
+
 ### struct.dot
 
 Is created in the process of packing or unpacking. Shows the structure of an application. Can be opened using [graphviz](http://graphviz.org/download/) or [webgraphviz](http://webgraphviz.com/)
