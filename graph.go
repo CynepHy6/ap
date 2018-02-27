@@ -39,9 +39,8 @@ var (
 
 func createGraph(filename string) {
 	graphDot.SetType(dot.DIGRAPH)
-	// graphDot.Set("rankdir", "TD")
 	graphDot.Set("rankdir", "LR")
-	graphDot.Set("fontsize", "24.0")
+	graphDot.Set("fontsize", "24")
 	graphDot.Set("nojustify", "true")
 	graphDot.Set("size", "30")
 	graphDot.Set("ordering", "out")
