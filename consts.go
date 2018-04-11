@@ -11,16 +11,6 @@ const (
 	eJSON = ".json"
 	eCSV  = ".csv"
 
-	// file suffixes
-	_block = "__block"
-	_menu  = "__menu"
-	_lang  = "__language"
-	_table = "__table"
-	_param = "__parameter"
-	_data  = "__data"
-	_page  = "__page"
-	_contr = "__contract"
-
 	dirBlock = "blocks"
 	dirMenu  = "menus"
 	dirLang  = "languages"
@@ -38,7 +28,7 @@ const (
 	structFileName    = "struct.dot"
 
 	//
-	helpMsg = "please choose directory for paking, example:\n    ap dirfiles" + separator + "\nor file to unpacking, example:\n    ap file.json"
+	helpMsg = "please choose directory for packing, example:\n    ap dirfiles" + separator + "\nor file to unpacking, example:\n    ap file.json"
 )
 
 type configFile struct {
@@ -66,14 +56,15 @@ type tableConf struct {
 }
 
 type exportFile struct {
-	Blocks     []stdStruct   `json:"blocks"`
-	Contracts  []stdStruct   `json:"contracts"`
-	Data       []dataStruct  `json:"data"`
-	Languages  []langStruct  `json:"languages"`
-	Menus      []stdStruct   `json:"menus"`
-	Pages      []pageStruct  `json:"pages"`
-	Parameters []stdStruct   `json:"parameters"`
-	Tables     []tableStruct `json:"tables"`
+	Blocks     []importStruct `json:"blocks"`
+	Contracts  []importStruct `json:"contracts"`
+	Data       []dataStruct   `json:"data"`
+	Languages  []importStruct `json:"languages"`
+	Menus      []importStruct `json:"menus"`
+	Pages      []importStruct `json:"pages"`
+	Parameters []importStruct `json:"parameters"`
+	Tables     []importStruct `json:"tables"`
+	Name       string         `json:"name,omitempty"`
 }
 type importFile struct {
 	Blocks     []commonStruct `json:"blocks"`
@@ -84,6 +75,21 @@ type importFile struct {
 	Pages      []commonStruct `json:"pages"`
 	Parameters []commonStruct `json:"parameters"`
 	Tables     []commonStruct `json:"tables"`
+}
+type dataFile struct {
+	Name string         `json:"name"`
+	Data []importStruct `json:"data"`
+}
+
+type importStruct struct {
+	Conditions  string `json:",omitempty"`
+	Value       string `json:",omitempty"`
+	Name        string `json:",omitempty"`
+	Trans       string `json:",omitempty"`
+	Menu        string `json:",omitempty"`
+	Columns     string `json:",omitempty"`
+	Permissions string `json:",omitempty"`
+	Type        string `json:",omitempty"`
 }
 
 type commonStruct struct {

@@ -18,6 +18,10 @@ func readConfig(out *exportFile) {
 		return
 	}
 	_ = json.Unmarshal(bs, &config)
+	if len(config.Name) > 0 {
+		importNew = true
+		out.Name = config.Name
+	}
 	if len(config.Blocks) > 0 {
 		for c := range config.Blocks {
 			for o := range out.Blocks {

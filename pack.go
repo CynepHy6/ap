@@ -52,13 +52,28 @@ func packJSON(path string) {
 			}
 		}
 	}
+
 	if countEntries(out) > 0 {
 		readConfig(&out)
 		if len(out.Contracts) > 0 {
 			out.Contracts = sortContracts(out.Contracts)
 		}
+		var result []byte
+		if importNew {
+			data := dataFile{}
+			data.Name = out.Name
+			data.Data = append(data.Data, out.Blocks...)
+			data.Data = append(data.Data, out.Menus...)
+			data.Data = append(data.Data, out.Languages...)
+			data.Data = append(data.Data, out.Tables...)
+			data.Data = append(data.Data, out.Parameters...)
+			data.Data = append(data.Data, out.Pages...)
+			data.Data = append(data.Data, out.Contracts...)
+			result, _ = _JSONMarshal(data, true)
+		} else {
+			result, _ = _JSONMarshal(out, true)
+		}
 
-		result, _ := _JSONMarshal(out, true)
 		if !strings.HasSuffix(outputName, ".json") {
 			outputName += ".json"
 		}
@@ -79,14 +94,14 @@ func packJSON(path string) {
 	}
 }
 func packDir(path string) (out exportFile) {
-	out.Blocks = []stdStruct{}
-	out.Contracts = []stdStruct{}
+	out.Blocks = []importStruct{}
+	out.Contracts = []importStruct{}
 	out.Data = []dataStruct{}
-	out.Languages = []langStruct{}
-	out.Menus = []stdStruct{}
-	out.Pages = []pageStruct{}
-	out.Parameters = []stdStruct{}
-	out.Tables = []tableStruct{}
+	out.Languages = []importStruct{}
+	out.Menus = []importStruct{}
+	out.Pages = []importStruct{}
+	out.Parameters = []importStruct{}
+	out.Tables = []importStruct{}
 
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -99,7 +114,6 @@ func packDir(path string) (out exportFile) {
 	for _, f := range files {
 		fname := f.Name()
 		ext := filepath.Ext(fname)
-		name := fname[:len(fname)-len(ext)]
 		if debug {
 			fmt.Println(fname)
 		}
@@ -107,105 +121,96 @@ func packDir(path string) (out exportFile) {
 		switch ext {
 		case ePTL:
 			switch {
-			case strings.HasSuffix(name, _menu) || fdir == dirMenu:
-				el := encodeStd(path, fname, _menu)
+			case fdir == dirMenu:
+				el := encodeStd(path, fname)
+				el.Type = "menu"
 				out.Menus = append(out.Menus, el)
-			case strings.HasSuffix(name, _block) || fdir == dirBlock:
-				el := encodeStd(path, fname, _block)
+			case fdir == dirBlock:
+				el := encodeStd(path, fname)
+				el.Type = "block"
 				out.Blocks = append(out.Blocks, el)
 			default:
-				el := encodePage(path, fname, _page)
+				el := encodePage(path, fname)
+				el.Type = "page"
 				out.Pages = append(out.Pages, el)
 			}
 		case eJSON:
 			switch {
-			case name == "parameters":
-				p := filepath.Join(path, fname)
-				out.Parameters = append(out.Parameters, file2stdArray(p)...)
-			case name == "languages":
-				p := filepath.Join(path, fname)
-				out.Languages = append(out.Languages, file2lang(p)...)
-			case strings.HasSuffix(name, _param) || fdir == dirParam:
-				out.Parameters = append(out.Parameters, encodeStd(path, fname, _param))
-			case strings.HasSuffix(name, _lang) || fdir == dirLang:
-				out.Languages = append(out.Languages, encodeLang(path, fname, _lang))
-			case strings.HasSuffix(name, _table) || fdir == dirTable:
-				out.Tables = append(out.Tables, encodeTable(path, fname, _table))
-			case strings.HasSuffix(name, _data) || fdir == dirData:
-				out.Data = append(out.Data, encodeData(path, fname, _data))
+			case fdir == dirParam:
+				el := encodeStd(path, fname)
+				el.Type = "parameter"
+				out.Parameters = append(out.Parameters, el)
+			case fdir == dirLang:
+				el := encodeLang(path, fname)
+				el.Type = "language"
+				out.Languages = append(out.Languages, el)
+			case fdir == dirTable:
+				el := encodeTable(path, fname)
+				el.Type = "table"
+				out.Tables = append(out.Tables, el)
+			case fdir == dirData:
+				el := encodeData(path, fname)
+				out.Data = append(out.Data, el)
 			}
 		case eCSV:
 			switch {
-			case strings.HasSuffix(name, _param) || fdir == dirParam:
-				out.Parameters = append(out.Parameters, encodeStd(path, fname, _param))
+			case fdir == dirParam:
+				el := encodeStd(path, fname)
+				el.Type = "parameter"
+				out.Parameters = append(out.Parameters, el)
 			}
 		case eSIM:
-			el := encodeStd(path, fname, _contr)
+			el := encodeStd(path, fname)
+			el.Type = "contract"
 			out.Contracts = append(out.Contracts, el)
 		}
 	}
 	return
 }
 
-func encodePage(path, fname, sExt string) (result pageStruct) {
+func encodePage(path, fname string) (result importStruct) {
 	ext := filepath.Ext(fname)
 	name := fname[:len(fname)-len(ext)]
 	fpath := filepath.Join(path, fname)
-	if strings.HasSuffix(name, sExt) {
-		name = name[:len(name)-len(sExt)]
-	}
 	result.Menu = defaultMenu
 	result.Name = name
 	result.Value = file2str(fpath)
 	result.Conditions = defaultCondition
 	return
 }
-func encodeData(path, fname, sExt string) (result dataStruct) {
-	// result = make(map[string]string)
+func encodeData(path, fname string) (result dataStruct) {
 	ext := filepath.Ext(fname)
 	name := fname[:len(fname)-len(ext)]
 	fpath := filepath.Join(path, fname)
-	if strings.HasSuffix(name, sExt) {
-		name = name[:len(name)-len(sExt)]
-	}
 	result.Table = name
 	dataFile := file2data(fpath)
 	result.Columns = dataFile.Columns
 	result.Data = dataFile.Data
 	return
 }
-func encodeTable(path, fname, sExt string) (result tableStruct) {
+func encodeTable(path, fname string) (result importStruct) {
 	ext := filepath.Ext(fname)
 	name := fname[:len(fname)-len(ext)]
 	fpath := filepath.Join(path, fname)
-	if strings.HasSuffix(name, sExt) {
-		name = name[:len(name)-len(sExt)]
-	}
 	result.Name = name
 	result.Columns = file2str(fpath)
 	result.Permissions = defaultPermission
 	return
 }
-func encodeLang(path, fname, sExt string) (result langStruct) {
+func encodeLang(path, fname string) (result importStruct) {
 	ext := filepath.Ext(fname)
 	name := fname[:len(fname)-len(ext)]
 	fpath := filepath.Join(path, fname)
-	if strings.HasSuffix(name, sExt) {
-		name = name[:len(name)-len(sExt)]
-	}
 	result.Name = name
 	result.Trans = file2str(fpath)
 	result.Conditions = ""
 	return
 }
 
-func encodeStd(path, fname, sExt string) (result stdStruct) {
+func encodeStd(path, fname string) (result importStruct) {
 	ext := filepath.Ext(fname)
 	name := fname[:len(fname)-len(ext)]
 	fpath := filepath.Join(path, fname)
-	if strings.HasSuffix(name, sExt) {
-		name = name[:len(name)-len(sExt)]
-	}
 	result.Name = name
 	result.Value = file2str(fpath)
 	result.Conditions = defaultCondition
@@ -230,7 +235,7 @@ func file2data(filename string) (result dataStruct) {
 	return
 }
 
-func file2stdArray(filename string) (result []stdStruct) {
+func file2stdArray(filename string) (result []importStruct) {
 	bs, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return
@@ -239,7 +244,7 @@ func file2stdArray(filename string) (result []stdStruct) {
 	return
 }
 
-func file2lang(filename string) (result []langStruct) {
+func file2lang(filename string) (result []importStruct) {
 	bs, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return
@@ -257,7 +262,7 @@ func _JSONMarshal(v interface{}, unescape bool) ([]byte, error) {
 	}
 	return b, err
 }
-func sortContracts(c []stdStruct) []stdStruct {
+func sortContracts(c []importStruct) []importStruct {
 	moved := false
 	nn := int(len(c) / 2)
 	for n := 0; n <= nn; n++ {

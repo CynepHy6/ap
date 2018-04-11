@@ -16,6 +16,7 @@ var (
 	debug          bool
 	version        bool
 	singleSeparate bool
+	importNew      bool
 	dirs           = []string{dirBlock, dirMenu, dirLang, dirTable, dirParam, dirData, dirPage, dirCon}
 )
 
