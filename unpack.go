@@ -13,27 +13,42 @@ func unpackJSON(filename string) {
 		fmt.Println(err)
 		return
 	}
-	file := importFile{}
-	if err := json.Unmarshal(bs, &file); err != nil {
-		fmt.Println("unmarshal file error:", err)
+	test := testFormatStruct{}
+	if err := json.Unmarshal(bs, &test); err != nil {
+		fmt.Println("unmarshal file test:", err)
 		return
 	}
+	if len(test.Name) > 0 {
+		importNew = true
+		file := dataFile{}
+		if err := json.Unmarshal(bs, &file); err != nil {
+			fmt.Println("unmarshal file error2:", err)
+			return
+		}
+		unpackDataFile(file.Data)
 
-	unpackStruct(file.Contracts, eSIM, dirCon)
-	unpackStruct(file.Menus, ePTL, dirMenu)
-	unpackStruct(file.Blocks, ePTL, dirBlock)
-	unpackStruct(file.Pages, ePTL, dirPage)
-	unpackStruct(file.Tables, eJSON, dirTable)
-	unpackStruct(file.Parameters, eCSV, dirParam)
-	unpackStruct(file.Languages, eJSON, dirLang)
+	} else {
+		file := importFile{}
+		if err := json.Unmarshal(bs, &file); err != nil {
+			fmt.Println("unmarshal file error1:", err)
+			return
+		}
+		unpackStruct(file.Contracts, eSIM, dirCon)
+		unpackStruct(file.Menus, ePTL, dirMenu)
+		unpackStruct(file.Blocks, ePTL, dirBlock)
+		unpackStruct(file.Pages, ePTL, dirPage)
+		unpackStruct(file.Tables, eJSON, dirTable)
+		unpackStruct(file.Parameters, eCSV, dirParam)
+		unpackStruct(file.Languages, eJSON, dirLang)
 
-	if len(file.Data) > 0 {
-		createDir(filepath.Join(outputName, dirData))
-		for _, c := range file.Data {
-			name := c.Table + eJSON
-			name = filepath.Join(dirData, name)
-			result, _ := json.MarshalIndent(c, "", "    ")
-			writeFileString(name, string(result))
+		if len(file.Data) > 0 {
+			createDir(filepath.Join(outputName, dirData))
+			for _, item := range file.Data {
+				name := item.Table + eJSON
+				name = filepath.Join(dirData, name)
+				result, _ := json.MarshalIndent(item, "", "    ")
+				writeFileString(name, string(result))
+			}
 		}
 	}
 	writeConfig(bs)
@@ -43,24 +58,40 @@ func unpackJSON(filename string) {
 	}
 }
 
-func unpackStruct(arr []commonStruct, tail, dir string) {
-	if len(arr) > 0 {
+func unpackStruct(items []commonStruct, tail, dir string) {
+	if len(items) > 0 {
 		createDir(filepath.Join(outputName, dir))
-		for _, c := range arr {
-			value := c.Value
-			if len(c.Columns) > 0 {
-				value = c.Columns
+		for _, item := range items {
+			value := item.Value
+			if len(item.Columns) > 0 {
+				value = item.Columns
 			}
-			if len(c.Trans) > 0 {
-				value = c.Trans
+			if len(item.Trans) > 0 {
+				value = item.Trans
 			}
-			name := c.Name
-			if len(c.Table) > 0 {
-				name = c.Table
+			name := item.Name
+			if len(item.Table) > 0 {
+				name = item.Table
 			}
-			nameTail := name + tail
-			nameTail = filepath.Join(dir, nameTail)
-			writeFileString(nameTail, value)
+			fullName := name + tail
+			fullName = filepath.Join(dir, fullName)
+			writeFileString(fullName, value)
+		}
+	}
+}
+func unpackDataFile(items []importStruct) {
+	if len(items) > 0 {
+		for _, item := range items {
+			createDir(filepath.Join(outputName, item.dir()))
+			value := item.Value
+			if len(item.Columns) > 0 {
+				value = item.Columns
+			}
+			if len(item.Trans) > 0 {
+				value = item.Trans
+			}
+			fullName := filepath.Join(item.dir(), item.fullName())
+			writeFileString(fullName, value)
 		}
 	}
 }

@@ -107,8 +107,10 @@ func checkOutput() {
 }
 
 func createDir(path string) {
-	if err := os.MkdirAll(path, os.ModePerm); err != nil {
-		fmt.Println("error create dir", err)
+	if _, e := os.Stat(path); os.IsNotExist(e) {
+		if err := os.MkdirAll(path, os.ModePerm); err != nil {
+			fmt.Println("error create dir", err)
+		}
 	}
 }
 

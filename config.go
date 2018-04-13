@@ -83,12 +83,41 @@ func readConfig(out *exportFile) {
 }
 
 func writeConfig(bs []byte) {
-	cFile := configFile{}
-	if err := json.Unmarshal(bs, &cFile); err != nil {
-		fmt.Println("unmarshal config file error:", err)
+	conf := configFile{}
+	if importNew {
+		tempConf := dataConf{}
+		if err := json.Unmarshal(bs, &tempConf); err != nil {
+			fmt.Println("unmarshal config file error:", err)
+			return
+		}
+		conf = convertDataConf(tempConf)
 	} else {
-		if bs, err := json.MarshalIndent(cFile, "", "    "); err == nil {
-			writeFileString(configName, string(bs))
+		if err := json.Unmarshal(bs, &conf); err != nil {
+			fmt.Println("unmarshal config file error:", err)
+			return
 		}
 	}
+	if bs, err := json.MarshalIndent(conf, "", "    "); err == nil {
+		writeFileString(configName, string(bs))
+	}
+}
+func convertDataConf(conf dataConf) (res configFile) {
+	res.Name = conf.Name
+	for _, item := range conf.Data {
+		switch item.Type {
+		case typeBlock:
+			res.Blocks = append(res.Blocks, item)
+		case typeMenu:
+			res.Menus = append(res.Menus, item)
+		case typePage:
+			res.Pages = append(res.Pages, item)
+		case typeParam:
+			res.Params = append(res.Params, item)
+		case typeCon:
+			res.Contracts = append(res.Contracts, item)
+		case typeTable:
+			res.Tables = append(res.Tables, item)
+		}
+	}
+	return res
 }

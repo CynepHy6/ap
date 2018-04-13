@@ -1,9 +1,12 @@
 package main
 
-import "os"
+import (
+	"os"
+	"strings"
+)
 
 const (
-	currentVersion = "0.8.5"
+	currentVersion = "0.9"
 	currentTitle   = "Applications Packager " + currentVersion
 
 	eSIM  = ".sim"
@@ -20,6 +23,14 @@ const (
 	dirPage  = "pages"
 	dirCon   = "contracts"
 
+	typeBlock = "block"
+	typeMenu  = "menu"
+	typeLang  = "language"
+	typeTable = "table"
+	typeParam = "parameter"
+	typePage  = "page"
+	typeCon   = "contract"
+
 	defaultCondition  = "ContractConditions(\"MainCondition\")"
 	defaultMenu       = "default_menu"
 	defaultPermission = "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}"
@@ -32,27 +43,13 @@ const (
 )
 
 type configFile struct {
-	Blocks    *[]stdConf   `json:"blocks"`
-	Contracts *[]stdConf   `json:"contracts"`
-	Menus     *[]stdConf   `json:"menus"`
-	Pages     *[]pageConf  `json:"pages"`
-	Tables    *[]tableConf `json:"tables"`
-	Params    *[]stdConf   `json:"parameters"`
-}
-type stdConf struct {
-	Name       string
-	Conditions string
-}
-
-type pageConf struct {
-	Name       string
-	Conditions string
-	Menu       string
-}
-
-type tableConf struct {
-	Name        string
-	Permissions string
+	Blocks    []importConf `json:"blocks"`
+	Contracts []importConf `json:"contracts"`
+	Menus     []importConf `json:"menus"`
+	Pages     []importConf `json:"pages"`
+	Tables    []importConf `json:"tables"`
+	Params    []importConf `json:"parameters"`
+	Name      string       `json:"name,omitempty"`
 }
 
 type exportFile struct {
@@ -75,10 +72,42 @@ type importFile struct {
 	Pages      []commonStruct `json:"pages"`
 	Parameters []commonStruct `json:"parameters"`
 	Tables     []commonStruct `json:"tables"`
+	Name       string         `json:"name,omitempty"`
 }
+
+func (item *importStruct) dir() string {
+	if !strings.HasSuffix(item.Type, "s") {
+		return item.Type + "s"
+	}
+	return item.Type
+}
+func (item *importStruct) fullName() string {
+	return item.Name + item.ext()
+}
+func (item *importStruct) ext() string {
+	ext := eJSON
+	switch item.Type {
+	case typeBlock:
+		fallthrough
+	case typeMenu:
+		fallthrough
+	case typePage:
+		ext = ePTL
+	case typeParam:
+		ext = eCSV
+	case typeCon:
+		ext = eSIM
+	}
+	return ext
+}
+
 type dataFile struct {
 	Name string         `json:"name"`
 	Data []importStruct `json:"data"`
+}
+type dataConf struct {
+	Name string       `json:"name"`
+	Data []importConf `json:"data"`
 }
 
 type importStruct struct {
@@ -91,6 +120,13 @@ type importStruct struct {
 	Permissions string `json:",omitempty"`
 	Type        string `json:",omitempty"`
 }
+type importConf struct {
+	Conditions  string `json:",omitempty"`
+	Name        string `json:",omitempty"`
+	Menu        string `json:",omitempty"`
+	Permissions string `json:",omitempty"`
+	Type        string `json:",omitempty"`
+}
 
 type commonStruct struct {
 	Name       string
@@ -99,6 +135,9 @@ type commonStruct struct {
 	Trans      string
 	Columns    string
 	Table      string
+}
+type testFormatStruct struct {
+	Name string `json:",omitempty"`
 }
 type stdStruct struct {
 	Name       string
