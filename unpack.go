@@ -18,11 +18,11 @@ func unpackJSON(filename string) {
 		fmt.Println("unmarshal file test:", err)
 		return
 	}
-	if len(test.Name) > 0 {
+	if test.len() == 2 {
 		importNew = true
 		file := dataFile{}
 		if err := json.Unmarshal(bs, &file); err != nil {
-			fmt.Println("unmarshal file error2:", err)
+			fmt.Println("unmarshal file error_2:", err)
 			return
 		}
 		unpackDataFile(file.Data)
@@ -30,7 +30,7 @@ func unpackJSON(filename string) {
 	} else {
 		file := importFile{}
 		if err := json.Unmarshal(bs, &file); err != nil {
-			fmt.Println("unmarshal file error1:", err)
+			fmt.Println("unmarshal file error_1:", err)
 			return
 		}
 		unpackStruct(file.Contracts, eSIM, dirCon)
@@ -80,18 +80,16 @@ func unpackStruct(items []commonStruct, tail, dir string) {
 	}
 }
 func unpackDataFile(items []importStruct) {
-	if len(items) > 0 {
-		for _, item := range items {
-			createDir(filepath.Join(outputName, item.dir()))
-			value := item.Value
-			if len(item.Columns) > 0 {
-				value = item.Columns
-			}
-			if len(item.Trans) > 0 {
-				value = item.Trans
-			}
-			fullName := filepath.Join(item.dir(), item.fullName())
-			writeFileString(fullName, value)
+	for _, item := range items {
+		createDir(filepath.Join(outputName, item.dir()))
+		value := item.Value
+		if len(item.Columns) > 0 {
+			value = item.Columns
 		}
+		if len(item.Trans) > 0 {
+			value = item.Trans
+		}
+		fullName := filepath.Join(item.dir(), item.fullName())
+		writeFileString(fullName, value)
 	}
 }

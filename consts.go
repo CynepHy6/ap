@@ -63,6 +63,31 @@ type exportFile struct {
 	Tables     []importStruct `json:"tables"`
 	Name       string         `json:"name,omitempty"`
 }
+
+func (e *exportFile) cleaning() {
+	for i := range e.Blocks {
+		e.Blocks[i].Type = ""
+	}
+	for i := range e.Contracts {
+		e.Contracts[i].Type = ""
+	}
+	for i := range e.Languages {
+		e.Languages[i].Type = ""
+	}
+	for i := range e.Menus {
+		e.Menus[i].Type = ""
+	}
+	for i := range e.Pages {
+		e.Pages[i].Type = ""
+	}
+	for i := range e.Parameters {
+		e.Parameters[i].Type = ""
+	}
+	for i := range e.Tables {
+		e.Tables[i].Type = ""
+	}
+}
+
 type importFile struct {
 	Blocks     []commonStruct `json:"blocks"`
 	Contracts  []commonStruct `json:"contracts"`
@@ -137,8 +162,48 @@ type commonStruct struct {
 	Table      string
 }
 type testFormatStruct struct {
-	Name string `json:",omitempty"`
+	Name       string         `json:"name,omitempty"`
+	Blocks     []importStruct `json:"blocks,omitempty"`
+	Contracts  []importStruct `json:"contracts,omitempty"`
+	Data       []importStruct `json:"data,omitempty"`
+	Languages  []importStruct `json:"languages,omitempty"`
+	Menus      []importStruct `json:"menus,omitempty"`
+	Pages      []importStruct `json:"pages,omitempty"`
+	Parameters []importStruct `json:"parameters,omitempty"`
+	Tables     []importStruct `json:"tables,omitempty"`
 }
+
+func (t *testFormatStruct) len() (l int) {
+	if t.Name != "" {
+		l++
+	}
+	if t.Blocks != nil {
+		l++
+	}
+	if t.Contracts != nil {
+		l++
+	}
+	if t.Data != nil {
+		l++
+	}
+	if t.Languages != nil {
+		l++
+	}
+	if t.Menus != nil {
+		l++
+	}
+	if t.Pages != nil {
+		l++
+	}
+	if t.Parameters != nil {
+		l++
+	}
+	if t.Tables != nil {
+		l++
+	}
+	return l
+}
+
 type stdStruct struct {
 	Name       string
 	Value      string

@@ -106,16 +106,22 @@ func convertDataConf(conf dataConf) (res configFile) {
 	for _, item := range conf.Data {
 		switch item.Type {
 		case typeBlock:
+			item.Type = ""
 			res.Blocks = append(res.Blocks, item)
 		case typeMenu:
+			item.Type = ""
 			res.Menus = append(res.Menus, item)
 		case typePage:
+			item.Type = ""
 			res.Pages = append(res.Pages, item)
 		case typeParam:
+			item.Type = ""
 			res.Params = append(res.Params, item)
 		case typeCon:
+			item.Type = ""
 			res.Contracts = append(res.Contracts, item)
 		case typeTable:
+			item.Type = ""
 			res.Tables = append(res.Tables, item)
 		}
 	}

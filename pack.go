@@ -71,7 +71,8 @@ func packJSON(path string) {
 			data.Data = append(data.Data, out.Contracts...)
 			result, _ = _JSONMarshal(data, true)
 		} else {
-			result, _ = _JSONMarshal(out, true)
+			out.cleaning()
+			result, _ = _JSONMarshal(&out, true)
 		}
 
 		if !strings.HasSuffix(outputName, ".json") {
