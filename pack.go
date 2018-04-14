@@ -264,20 +264,14 @@ func _JSONMarshal(v interface{}, unescape bool) ([]byte, error) {
 	return b, err
 }
 func sortContracts(c []importStruct) []importStruct {
-	moved := false
-	nn := int(len(c) / 2)
+	nn := len(c)
 	for n := 0; n <= nn; n++ {
 		for i := len(c) - 1; i > 0; i-- {
 			for j := i - 1; j >= 0; j-- {
 				if textContainsName(c[j].Value, c[i].Name) {
 					c[i], c[j] = c[j], c[i]
-					moved = true
-					break
 				}
 			}
-		}
-		if !moved {
-			break
 		}
 	}
 	return c
