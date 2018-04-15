@@ -204,30 +204,6 @@ func (t *testFormatStruct) len() (l int) {
 	return l
 }
 
-type stdStruct struct {
-	Name       string
-	Value      string
-	Conditions string
-}
-type langStruct struct {
-	Name       string
-	Conditions string
-	Trans      string
-}
-
-type pageStruct struct {
-	Name       string
-	Value      string
-	Conditions string
-	Menu       string
-}
-
-type tableStruct struct {
-	Name        string
-	Columns     string
-	Permissions string
-}
-
 type dataStruct struct {
 	Table   string
 	Columns []string
