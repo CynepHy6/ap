@@ -265,8 +265,8 @@ func _JSONMarshal(v interface{}, unescape bool) ([]byte, error) {
 }
 func sortContracts(c []importStruct) []importStruct {
 	nn := len(c)
-	for n := 0; n <= nn; n++ {
-		for i := len(c) - 1; i > 0; i-- {
+	for n := 0; n < nn; n++ {
+		for i := nn - 1; i > 0; i-- {
 			for j := i - 1; j >= 0; j-- {
 				if textContainsName(c[j].Value, c[i].Name) {
 					c[i], c[j] = c[j], c[i]
