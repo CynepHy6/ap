@@ -110,20 +110,20 @@ func (item *importStruct) fullName() string {
 	return item.Name + item.ext()
 }
 func (item *importStruct) ext() string {
-	ext := eJSON
 	switch item.Type {
 	case typeBlock:
-		fallthrough
+		return ePTL
 	case typeMenu:
-		fallthrough
+		return ePTL
 	case typePage:
-		ext = ePTL
+		return ePTL
 	case typeParam:
-		ext = eCSV
+		return eCSV
 	case typeCon:
-		ext = eSIM
+		return eSIM
+	default:
+		return eJSON
 	}
-	return ext
 }
 
 type dataFile struct {

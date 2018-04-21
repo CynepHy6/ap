@@ -236,23 +236,6 @@ func file2data(filename string) (result dataStruct) {
 	return
 }
 
-func file2stdArray(filename string) (result []importStruct) {
-	bs, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return
-	}
-	json.Unmarshal(bs, &result)
-	return
-}
-
-func file2lang(filename string) (result []importStruct) {
-	bs, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return
-	}
-	json.Unmarshal(bs, &result)
-	return
-}
 func _JSONMarshal(v interface{}, unescape bool) ([]byte, error) {
 	b, err := json.MarshalIndent(v, "", "    ")
 
