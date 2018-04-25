@@ -247,14 +247,26 @@ func _JSONMarshal(v interface{}, unescape bool) ([]byte, error) {
 	return b, err
 }
 func sortContracts(c []importStruct) []importStruct {
+	loops := map[string]string{}
 	nn := len(c)
 	for n := 0; n < nn; n++ {
 		for i := nn - 1; i > 0; i-- {
 			for j := i - 1; j >= 0; j-- {
 				if textContainsName(c[j].Value, c[i].Name) {
+					if textContainsName(c[i].Value, c[j].Name) { // detect loop
+						if _, ok := loops[c[j].Name]; !ok {
+							loops[c[i].Name] = c[j].Name
+						}
+					}
 					c[i], c[j] = c[j], c[i]
 				}
 			}
+		}
+	}
+	if len(loops) > 0 {
+		fmt.Println("loops:")
+		for key, val := range loops {
+			fmt.Printf("%v <=> %v\n", key, val)
 		}
 	}
 	return c
