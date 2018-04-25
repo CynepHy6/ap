@@ -252,8 +252,8 @@ func sortContracts(c []importStruct) []importStruct {
 	for n := 0; n < nn; n++ {
 		for i := nn - 1; i > 0; i-- {
 			for j := i - 1; j >= 0; j-- {
-				if textContainsName(c[j].Value, c[i].Name) {
-					if textContainsName(c[i].Value, c[j].Name) { // detect loop
+				if textContainsName(c[j].Value, c[i].Name+"(") {
+					if textContainsName(c[i].Value, c[j].Name+"(") { // detect call contract loop
 						if _, ok := loops[c[j].Name]; !ok {
 							loops[c[i].Name] = c[j].Name
 						}
