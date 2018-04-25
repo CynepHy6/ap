@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	currentVersion = "0.9.4"
+	currentVersion = "0.9.5"
 	currentTitle   = "Applications Packager " + currentVersion
 
 	eSIM  = ".sim"
@@ -23,13 +23,13 @@ const (
 	dirPage  = "pages"
 	dirCon   = "contracts"
 
-	typeBlock = "block"
+	typeBlock = "blocks"
 	typeMenu  = "menu"
-	typeLang  = "language"
-	typeTable = "table"
-	typeParam = "parameter"
-	typePage  = "page"
-	typeCon   = "contract"
+	typeLang  = "languages"
+	typeTable = "tables"
+	typeParam = "app_params"
+	typePage  = "pages"
+	typeCon   = "contracts"
 
 	defaultCondition  = "ContractConditions(\"MainCondition\")"
 	defaultMenu       = "default_menu"
@@ -165,7 +165,6 @@ type testFormatStruct struct {
 	Name       string         `json:"name,omitempty"`
 	Blocks     []importStruct `json:"blocks,omitempty"`
 	Contracts  []importStruct `json:"contracts,omitempty"`
-	Data       []importStruct `json:"data,omitempty"`
 	Languages  []importStruct `json:"languages,omitempty"`
 	Menus      []importStruct `json:"menus,omitempty"`
 	Pages      []importStruct `json:"pages,omitempty"`
@@ -181,9 +180,6 @@ func (t *testFormatStruct) len() (l int) {
 		l++
 	}
 	if t.Contracts != nil {
-		l++
-	}
-	if t.Data != nil {
 		l++
 	}
 	if t.Languages != nil {

@@ -18,7 +18,7 @@ func unpackJSON(filename string) {
 		fmt.Println("unmarshal file test:", err)
 		return
 	}
-	if test.len() == 2 {
+	if test.len() == 1 && len(test.Name) > 0 {
 		importNew = true
 		file := dataFile{}
 		if err := json.Unmarshal(bs, &file); err != nil {

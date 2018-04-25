@@ -75,8 +75,8 @@ func packJSON(path string) {
 			result, _ = _JSONMarshal(&out, true)
 		}
 
-		if !strings.HasSuffix(outputName, ".json") {
-			outputName += ".json"
+		if !strings.HasSuffix(outputName, eJSON) {
+			outputName += eJSON
 		}
 		outFile, err := os.Create(outputName)
 		if err != nil {
@@ -122,32 +122,32 @@ func packDir(path string) (out exportFile) {
 		switch ext {
 		case ePTL:
 			switch {
-			case fdir == dirMenu:
+			case fdir == dirMenu || fdir == typeMenu:
 				el := encodeStd(path, fname)
-				el.Type = "menu"
+				el.Type = typeMenu
 				out.Menus = append(out.Menus, el)
-			case fdir == dirBlock:
+			case fdir == dirBlock || fdir == typeBlock:
 				el := encodeStd(path, fname)
-				el.Type = "block"
+				el.Type = typeBlock
 				out.Blocks = append(out.Blocks, el)
 			default:
 				el := encodePage(path, fname)
-				el.Type = "page"
+				el.Type = typePage
 				out.Pages = append(out.Pages, el)
 			}
 		case eJSON:
 			switch {
-			case fdir == dirParam:
+			case fdir == dirParam || fdir == typeParam:
 				el := encodeStd(path, fname)
-				el.Type = "parameter"
+				el.Type = typeParam
 				out.Parameters = append(out.Parameters, el)
-			case fdir == dirLang:
+			case fdir == dirLang || fdir == typeLang:
 				el := encodeLang(path, fname)
-				el.Type = "language"
+				el.Type = typeLang
 				out.Languages = append(out.Languages, el)
-			case fdir == dirTable:
+			case fdir == dirTable || fdir == typeTable:
 				el := encodeTable(path, fname)
-				el.Type = "table"
+				el.Type = typeTable
 				out.Tables = append(out.Tables, el)
 			case fdir == dirData:
 				el := encodeData(path, fname)
@@ -155,14 +155,14 @@ func packDir(path string) (out exportFile) {
 			}
 		case eCSV:
 			switch {
-			case fdir == dirParam:
+			case fdir == dirParam || fdir == typeParam:
 				el := encodeStd(path, fname)
-				el.Type = "parameter"
+				el.Type = typeParam
 				out.Parameters = append(out.Parameters, el)
 			}
 		case eSIM:
 			el := encodeStd(path, fname)
-			el.Type = "contract"
+			el.Type = typeCon
 			out.Contracts = append(out.Contracts, el)
 		}
 	}
