@@ -43,6 +43,8 @@ func packJSON(path string) {
 				out.Tables = append(out.Tables, dir.Tables...)
 			case dirParam:
 				out.Parameters = append(out.Parameters, dir.Parameters...)
+			case typeParam:
+				out.Parameters = append(out.Parameters, dir.Parameters...)
 			case dirData:
 				out.Data = append(out.Data, dir.Data...)
 			case dirPage:
