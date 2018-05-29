@@ -32,9 +32,10 @@ var (
 	}
 	page2Contr   = regexp.MustCompile("\\(.*?Contract:\\s*(@?\\w+)")
 	page2Page    = regexp.MustCompile("\\(.*?Page:\\s*(\\w+)")
-	contr2Table  = regexp.MustCompile("(?:DBFind|DBInsert|DBUpdate|DBUpdateExt|DBRow)\\s*\\(\\s*[\"]([\\w]+?)[\"]")
-	page2Table   = regexp.MustCompile("DBFind\\s*\\(\\s*Name:\\s*(.*?)[,\\s]|DBFind\\s*\\(\\s*([^:]*?)[\\),\\s]")
-	includeBlock = regexp.MustCompile("Include\\s*\\(\\s*Name:\\s*(.*?)[,\\s]|Include\\s*\\(\\s*([^:]*?)[\\),\\s]")
+	tableWrite   = regexp.MustCompile("(?:DBInsert|DBUpdate|DBUpdateExt)\\(\\s*[\"]([\\w]+?)[\"]")
+	tableRead    = regexp.MustCompile("(?:DBFind|DBRow)\\(.*?[\"\x60']?(\\w+)['\x60\",)]")
+	page2Table   = regexp.MustCompile("(?:DBFind)\\(.*?[\"\x60']?(\\w+)['\x60\",)]")
+	includeBlock = regexp.MustCompile("Include\\(\\s*Name:\\s*(.*?)[,\\s\\)]|Include\\(\\s*([^:]*?)[\\),\\s]")
 )
 
 func createGraph(filename string) {
@@ -120,28 +121,29 @@ func dirToGraph(path string) (out []graphStruct) {
 func createNodeWithEdges(gs *graphStruct) {
 	node := dot.NewNode(getNodeName(gs.Name, gs.Dir))
 	settingsNode(node, gs.Dir)
-
+	revert := false
 	switch gs.Dir {
 	case dirCon:
 		createContractNodes(node, gs, dirCon)
-		createNodes(node, contr2Table, gs, dirTable)
+		createNodes(node, tableWrite, gs, dirTable, revert)
+		createNodes(node, tableRead, gs, dirTable, true)
 	case dirPage:
-		createNodes(node, page2Contr, gs, dirCon)
-		createNodes(node, page2Table, gs, dirTable)
-		createNodes(node, page2Page, gs, dirPage)
-		createNodes(node, includeBlock, gs, dirBlock)
+		createNodes(node, page2Contr, gs, dirCon, revert)
+		createNodes(node, page2Table, gs, dirTable, true)
+		createNodes(node, page2Page, gs, dirPage, revert)
+		createNodes(node, includeBlock, gs, dirBlock, revert)
 	case dirBlock:
-		createNodes(node, page2Contr, gs, dirCon)
-		createNodes(node, page2Table, gs, dirTable)
-		createNodes(node, page2Page, gs, dirPage)
+		createNodes(node, page2Contr, gs, dirCon, revert)
+		createNodes(node, page2Table, gs, dirTable, true)
+		createNodes(node, page2Page, gs, dirPage, revert)
 	case dirMenu:
-		createNodes(node, page2Page, gs, dirPage)
+		createNodes(node, page2Page, gs, dirPage, revert)
 	}
 
 	graphDot.AddNode(node)
 }
 
-func createNodes(parentNode *dot.Node, pat *regexp.Regexp, gs *graphStruct, dir string) {
+func createNodes(parentNode *dot.Node, pat *regexp.Regexp, gs *graphStruct, dir string, revert bool) {
 	s := strings.Replace(gs.Value, "`", `"`, -1)
 	arr := pat.FindAllStringSubmatch(s, -1)
 	for _, match := range arr {
@@ -150,7 +152,7 @@ func createNodes(parentNode *dot.Node, pat *regexp.Regexp, gs *graphStruct, dir 
 				if match[i] != "" {
 					name := match[i]
 					if !stringInSlice(graphMap[parentNode.Name()], name) { // check exist graph heads
-						createNode(parentNode, name, dir, gs)
+						createNode(parentNode, name, dir, gs, revert)
 					}
 				}
 			}
@@ -166,7 +168,7 @@ func settingsNode(node *dot.Node, dir string) {
 	node.Set("shape", nodeShapes[dir])
 }
 
-func createNode(parentNode *dot.Node, nameOrig, dir string, gs *graphStruct) {
+func createNode(parentNode *dot.Node, nameOrig, dir string, gs *graphStruct, revert bool) {
 	name := getNodeName(nameOrig, dir)
 	parentName := parentNode.Name()
 	node := dot.NewNode(name)
@@ -177,14 +179,15 @@ func createNode(parentNode *dot.Node, nameOrig, dir string, gs *graphStruct) {
 	}
 
 	edge := dot.NewEdge(parentNode, node)
-	if dir == dirTable && gs.Dir != dirCon {
+	edge.Set("color", nodeColors[dir])
+	if revert {
 		edge = dot.NewEdge(node, parentNode)
+		// edge.Set("color", nodeColors[gs.Dir])
 	}
 
 	if dir == dirBlock {
 		edge.Set(labelType, "include")
 	}
-	edge.Set("color", nodeColors[dir])
 
 	graphDot.AddEdge(edge)
 	graphMap[parentName] = append(graphMap[parentName], nameOrig)
@@ -195,7 +198,7 @@ func createContractNodes(parentNode *dot.Node, gs *graphStruct, dir string) {
 	for _, name := range contractsList {
 		if name != gs.Name && strings.Contains(s, name) {
 			if !stringInSlice(graphMap[parentNode.Name()], name) { // check exist graph heads
-				createNode(parentNode, name, dir, gs)
+				createNode(parentNode, name, dir, gs, false)
 			}
 		}
 	}
@@ -230,7 +233,7 @@ func parseGroup(n string) string {
 		parts := strings.Split(name, "_")
 		return strings.ToLower(parts[0])
 	}
-	return "basic"
+	return "0"
 }
 
 var camel = regexp.MustCompile("(^[^A-Z0-9]*|[A-Z0-9]*)([A-Z0-9][^A-Z]+|$)")
