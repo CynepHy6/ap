@@ -46,7 +46,7 @@ func createGraph(filename string) {
 	graphDot.Set("ordering", "out")
 
 	label := strings.Trim(outputName, separator)
-	label = strings.Trim(label, ".json")
+	label = strings.TrimSuffix(label, ".json")
 	labelGraph := fmt.Sprintf("%s\n%s", label, time.Now().Format(time.RFC850))
 	graphDot.Set(labelType, labelGraph)
 
