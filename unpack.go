@@ -63,10 +63,11 @@ func unpackStruct(items []commonStruct, tail, dir string) {
 		createDir(filepath.Join(outputName, dir))
 		for _, item := range items {
 			value := item.Value
-			if len(item.Columns) > 0 {
+			fmt.Println(value)
+			switch dir {
+			case dirTable:
 				value = item.Columns
-			}
-			if len(item.Trans) > 0 {
+			case dirLang:
 				value = item.Trans
 			}
 			name := item.Name
@@ -83,10 +84,10 @@ func unpackDataFile(items []importStruct) {
 	for _, item := range items {
 		createDir(filepath.Join(outputName, item.dir()))
 		value := item.Value
-		if len(item.Columns) > 0 {
+		switch item.dir() {
+		case dirTable:
 			value = item.Columns
-		}
-		if len(item.Trans) > 0 {
+		case dirLang:
 			value = item.Trans
 		}
 		fullName := filepath.Join(item.dir(), item.fullName())
