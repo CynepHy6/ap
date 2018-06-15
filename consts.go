@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	currentVersion = "0.9.9"
+	currentVersion = "0.9.10"
 	currentTitle   = "Applications Packager " + currentVersion
 
 	eSIM  = ".sim"
@@ -38,7 +38,6 @@ const (
 	separator         = string(os.PathSeparator)
 	structFileName    = "struct.dot"
 
-	//
 	helpMsg = "please choose directory for packing, example:\n    ap dirfiles" + separator + "\nor file to unpacking, example:\n    ap file.json"
 )
 

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+
+	"github.com/spkg/bom"
 )
 
 func unpackJSON(filename string) {
@@ -13,6 +15,7 @@ func unpackJSON(filename string) {
 		fmt.Println(err)
 		return
 	}
+	bs = bom.Clean(bs)
 	test := testFormatStruct{}
 	if err := json.Unmarshal(bs, &test); err != nil {
 		fmt.Println("unmarshal file test:", err)
