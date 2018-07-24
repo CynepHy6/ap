@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -254,8 +255,8 @@ func sortContracts(c []importStruct) []importStruct {
 	for n := 0; n < nn; n++ {
 		for i := nn - 1; i > 0; i-- {
 			for j := i - 1; j >= 0; j-- {
-				if textContainsName(c[j].Value, c[i].Name+"(") {
-					if textContainsName(c[i].Value, c[j].Name+"(") { // detect call contract loop
+				if textContainsContract(c[j].Value, c[i].Name) {
+					if textContainsContract(c[i].Value, c[j].Name) { // detect call contract loop
 						if _, ok := loops[c[j].Name]; !ok {
 							loops[c[i].Name] = c[j].Name
 						}
@@ -274,11 +275,13 @@ func sortContracts(c []importStruct) []importStruct {
 	return c
 }
 
-func textContainsName(text, name string) bool {
+func textContainsContract(text, name string) bool {
+	re := regexp.MustCompile(name + "\\s+\\(")
+
 	lines := strings.Split(text, "\n")
 	for _, l := range lines {
 		line := strings.Trim(l, " ")
-		if !strings.HasPrefix(line, "//") && strings.Contains(line, name) {
+		if !strings.HasPrefix(line, "//") && re.MatchString(line) {
 			return true
 		}
 	}
