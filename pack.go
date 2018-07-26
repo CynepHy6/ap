@@ -276,7 +276,7 @@ func sortContracts(c []importStruct) []importStruct {
 }
 
 func textContainsContract(text, name string) bool {
-	re := regexp.MustCompile(name + "\\s+\\(")
+	re := regexp.MustCompile(name + "\\s*\\(")
 
 	lines := strings.Split(text, "\n")
 	for _, l := range lines {
