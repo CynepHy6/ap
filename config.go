@@ -21,6 +21,7 @@ func readConfig(out *exportFile) {
 	if len(config.Name) > 0 {
 		importNew = true
 		out.Name = config.Name
+		out.Conditions = config.Conditions
 	}
 	if len(config.Blocks) > 0 {
 		for c := range config.Blocks {
@@ -36,6 +37,7 @@ func readConfig(out *exportFile) {
 			for o := range out.Contracts {
 				if config.Contracts[c].Name == out.Contracts[o].Name {
 					out.Contracts[o].Conditions = config.Contracts[c].Conditions
+					out.Contracts[o].Confirmation = config.Contracts[c].Confirmation
 				}
 			}
 		}
@@ -103,6 +105,7 @@ func writeConfig(bs []byte) {
 }
 func convertDataConf(conf dataConf) (res configFile) {
 	res.Name = conf.Name
+	res.Conditions = conf.Conditions
 	for _, item := range conf.Data {
 		switch item.Type {
 		case typeBlock:

@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	currentVersion = "0.9.11"
+	currentVersion = "0.9.12"
 	currentTitle   = "Applications Packager " + currentVersion
 
 	eSIM  = ".sim"
@@ -42,16 +42,19 @@ const (
 )
 
 type configFile struct {
-	Blocks    []importConf `json:"blocks"`
-	Contracts []importConf `json:"contracts"`
-	Menus     []importConf `json:"menus"`
-	Pages     []importConf `json:"pages"`
-	Tables    []importConf `json:"tables"`
-	Params    []importConf `json:"parameters"`
-	Name      string       `json:"name,omitempty"`
+	Name       string       `json:"name,omitempty"`
+	Conditions string       `json:"conditions,omitempty"`
+	Blocks     []importConf `json:"blocks"`
+	Contracts  []importConf `json:"contracts"`
+	Menus      []importConf `json:"menus"`
+	Pages      []importConf `json:"pages"`
+	Tables     []importConf `json:"tables"`
+	Params     []importConf `json:"parameters"`
 }
 
 type exportFile struct {
+	Name       string         `json:"name,omitempty"`
+	Conditions string         `json:"conditions,omitempty"`
 	Blocks     []importStruct `json:"blocks"`
 	Contracts  []importStruct `json:"contracts"`
 	Data       []dataStruct   `json:"data"`
@@ -60,7 +63,6 @@ type exportFile struct {
 	Pages      []importStruct `json:"pages"`
 	Parameters []importStruct `json:"parameters"`
 	Tables     []importStruct `json:"tables"`
-	Name       string         `json:"name,omitempty"`
 }
 
 func (e *exportFile) cleaning() {
@@ -126,30 +128,34 @@ func (item *importStruct) ext() string {
 }
 
 type dataFile struct {
-	Name string         `json:"name"`
-	Data []importStruct `json:"data"`
+	Name       string         `json:"name"`
+	Conditions string         `json:"conditions,omitempty"`
+	Data       []importStruct `json:"data"`
 }
 type dataConf struct {
-	Name string       `json:"name"`
-	Data []importConf `json:"data"`
+	Name       string       `json:"name"`
+	Conditions string       `json:"conditions,omitempty"`
+	Data       []importConf `json:"data"`
 }
 
 type importStruct struct {
-	Conditions  string `json:",omitempty"`
-	Value       string `json:",omitempty"`
-	Name        string `json:",omitempty"`
-	Trans       string `json:",omitempty"`
-	Menu        string `json:",omitempty"`
-	Columns     string `json:",omitempty"`
-	Permissions string `json:",omitempty"`
-	Type        string `json:",omitempty"`
+	Name         string `json:",omitempty"`
+	Confirmation string `json:",omitempty"`
+	Conditions   string `json:",omitempty"`
+	Value        string `json:",omitempty"`
+	Trans        string `json:",omitempty"`
+	Menu         string `json:",omitempty"`
+	Columns      string `json:",omitempty"`
+	Permissions  string `json:",omitempty"`
+	Type         string `json:",omitempty"`
 }
 type importConf struct {
-	Conditions  string `json:",omitempty"`
-	Name        string `json:",omitempty"`
-	Menu        string `json:",omitempty"`
-	Permissions string `json:",omitempty"`
-	Type        string `json:",omitempty"`
+	Name         string `json:",omitempty"`
+	Confirmation string `json:",omitempty"`
+	Conditions   string `json:",omitempty"`
+	Menu         string `json:",omitempty"`
+	Permissions  string `json:",omitempty"`
+	Type         string `json:",omitempty"`
 }
 
 type commonStruct struct {
@@ -162,6 +168,7 @@ type commonStruct struct {
 }
 type testFormatStruct struct {
 	Name       string         `json:"name,omitempty"`
+	Conditions string         `json:"conditions,omitempty"`
 	Blocks     []importStruct `json:"blocks,omitempty"`
 	Contracts  []importStruct `json:"contracts,omitempty"`
 	Languages  []importStruct `json:"languages,omitempty"`
