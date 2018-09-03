@@ -39,6 +39,9 @@ var (
 )
 
 func createGraph(filename string) {
+	if !withGraph {
+		return
+	}
 	graphDot.SetType(dot.DIGRAPH)
 	graphDot.Set("rankdir", "LR")
 	graphDot.Set("fontsize", "24")

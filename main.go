@@ -17,10 +17,11 @@ var (
 	version        bool
 	singleSeparate bool
 	importNew      bool
+	withGraph      bool
 	dirs           = []string{dirBlock, dirMenu, dirLang, dirTable, dirParam, dirData, dirPage, dirCon}
 )
 
-func init() {
+func main() {
 	flag.BoolVar(&unpackMode, "unpack", false, "-u, unpacking mode")
 	flag.StringVar(&inputName, "input", ".", "-i, path for input files, filename for pack and dirname/ (slashed) for unpack")
 	flag.StringVar(&outputName, "output", "output", "-o, output filename for JSON if input file name not pointed")
@@ -31,22 +32,21 @@ func init() {
 	flag.BoolVar(&unpackMode, "u", false, "-unpack")
 	flag.BoolVar(&version, "v", false, "-version")
 	flag.BoolVar(&debug, "d", false, "debug")
+	flag.BoolVar(&withGraph, "g", false, "make graphical structure in dot-file")
 	flag.Parse()
-}
 
-func main() {
-	args := os.Args
-	if argsCount := len(args); argsCount == 1 {
+	args := flag.Args()
+	if argsCount := len(args); argsCount == 0 {
 		// without args run gui
 		SimpleGui()
 	} else {
-		if argsCount == 2 && version {
+		if argsCount == 1 && version {
 			fmt.Println(currentTitle)
-		} else if argsCount >= 2 {
+		} else if argsCount >= 1 {
 			if version {
 				fmt.Println(currentTitle)
 			}
-			name := args[1]
+			name := args[0]
 			if stats, err := os.Stat(name); err == nil {
 				if stats.IsDir() {
 					packMode = true
