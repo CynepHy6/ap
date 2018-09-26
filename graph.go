@@ -30,12 +30,12 @@ var (
 		dirMenu:  "record",
 		dirBlock: "record",
 	}
-	page2Contr   = regexp.MustCompile("\\(.*?Contract:\\s*(@?\\w+)")
-	page2Page    = regexp.MustCompile("\\(.*?Page:\\s*(\\w+)")
-	tableWrite   = regexp.MustCompile("(?:DBInsert|DBUpdate|DBUpdateExt)\\(\\s*[\"]([\\w]+?)[\"]")
-	tableRead    = regexp.MustCompile("(?:DBFind|DBRow)\\(.*?[\"\x60']?(\\w+)['\x60\",)]")
-	page2Table   = regexp.MustCompile("(?:DBFind)\\(.*?[\"\x60']?(\\w+)['\x60\",)]")
-	includeBlock = regexp.MustCompile("Include\\(\\s*Name:\\s*(.*?)[,\\s\\)]|Include\\(\\s*([^:]*?)[\\),\\s]")
+	page2Contr   = regexp.MustCompile("\\(.*?Contract:\\s*@?1?(\\w+)")
+	page2Page    = regexp.MustCompile("\\(.*?Page:\\s*@?1?(\\w+)")
+	tableWrite   = regexp.MustCompile("(?:DBInsert|DBUpdate|DBUpdateExt)\\(\\s*[\"]@?1?(\\w+?)[\"]")
+	tableRead    = regexp.MustCompile("(?:DBFind|DBRow)\\(.*?[\"\x60']?@?1?(\\w+)['\x60\",)]")
+	page2Table   = regexp.MustCompile("(?:DBFind)\\(.*?[\"\x60']?@?1?(\\w+)['\x60\",)]")
+	includeBlock = regexp.MustCompile("Include\\(\\s*Name:\\s*@?1?(.*?)[,\\s\\)]|Include\\(\\s*@?1?([^:]*?)[\\),\\s]")
 )
 
 func createGraph(filename string) {
